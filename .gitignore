@@ -20,6 +20,6 @@ vignettes/*.pdf
 *.dbf
 .DS_Store
 NFDB_point
-Ecoregions
-Ecodistricts
+#Ecoregions
+#Ecodistricts
 *.prj
