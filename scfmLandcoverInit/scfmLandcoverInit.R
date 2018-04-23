@@ -17,7 +17,9 @@ defineModule(sim, list(
   parameters=rbind(
     defineParameter(".plotInitialTime", "numeric", 0, NA, NA, desc="Initial time for plotting"),
     defineParameter(".plotInterval", "numeric", NA, NA, NA, desc="Interval between plotting"), #usually, once is enough
-    defineParameter(".useCache", "logical", TRUE, NA, NA, desc="Should Cache the processed vegMap?")),
+    defineParameter("nonFlammClasses", "numeric", c(36, 37, 38, 39), NA, NA, desc="which classes don't burn"),
+    defineParameter(".useCache", "logical", TRUE, NA, NA, desc="Should Cache the processed vegMap?")
+    ),
   inputObjects=bind_rows(
     expectsInput(objectName="nNbrs", objectClass = "numeric", desc="raster cell neighborhood defaults to 8"),
     expectsInput(objectName="vegMap", objectClass = "RasterLayer", desc="vegetation template LCC05"),
@@ -40,7 +42,7 @@ doEvent.scfmLandcoverInit = function(sim, eventTime, eventType, debug=FALSE) {
     plot = {
       Plot(sim$vegMap, new=TRUE)
       Plot(sim$flammableMap, legend=FALSE) # this is failing probably due to a bug in Plot
-                                         # EJM is working on it 20160224
+                                           # EJM is working on it 20160224
       sim <- scheduleEvent(sim, time(sim) + P(sim)$.plotInterval, "scfmLandcoverInit", "plot")
     },
     warning(paste("Undefined event type: '", events(sim)[1, "eventType", with=FALSE],
@@ -50,12 +52,12 @@ doEvent.scfmLandcoverInit = function(sim, eventTime, eventType, debug=FALSE) {
 }
 
 genFireMapAttr <- function(sim){
- 
-  cellSize <- mean(raster::values(area(sim$flammableMap,na.rm=TRUE)),
-                   na.rm=TRUE)*100 #area returns km^2!
-  
-  cellSize <- 6.25
   #browser()
+  #we assume the raster is a regular grid, not in lat-long
+  #cellSize <- mean(raster::values(area(sim$flammableMap,na.rm=TRUE)),
+  #                 na.rm=TRUE)*100 #area returns km^2!
+  cellSize <- prod(res(sim$flammableMap))/1e4  #copied below from template sim$vegMap
+  
   if (is.na(cellSize))
     stop("scfmLandcoverInit: cellSize is NA")
   
@@ -84,12 +86,13 @@ genFireMapAttr <- function(sim){
 Init = function(sim) {
   # these classes are LCC05 specific
   #browser()
-  nonFlammClasses<-c(36) #,37,38,39)  #should be a parameter.
+  
+  #nonFlammClasses <- c(36, 37, 38, 39)  #should be a parameter.
   oldClass <- 0:39
-  newClass <- ifelse(oldClass %in% nonFlammClasses,1,0)   #1 codes for non flammable 
-                                                          #see mask argument for SpaDES::spread()
+  newClass <- ifelse(oldClass %in% P(sim)$nonFlammClasses,1,0)   #1 codes for non flammable 
+                                                                 #see mask argument for SpaDES::spread()
   flammableTable <- cbind(oldClass, newClass)
-  sim$flammableMap <-raster::ratify(raster::reclassify(sim$vegMap, flammableTable,count=TRUE))
+  sim$flammableMap <-raster::ratify(raster::reclassify(sim$vegMap, flammableTable),count=TRUE)
   if ("Mask" %in% names(objs(sim))){
     if (class(sim$Mask) == "RasterLayer") #should also check they conform.
       sim$flammableMap <- sim$flammableMap * sim$Mask # NAs in Mask should 

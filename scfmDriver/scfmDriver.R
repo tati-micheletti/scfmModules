@@ -39,8 +39,6 @@ doEvent.scfmDriver = function(sim, eventTime, eventType, debug=FALSE) {
 }
 
 
-
-
 # 1 - (1-p0)**N = pEscape
 # 1 - pEscape = (1-p0)**Ns
 # (1 - pEscape)**1/N = 1 - p0
@@ -64,7 +62,7 @@ Init = function(sim) {
   #I chose the one that seems most appropriate to me
   #browser()
   #we know this table was produced with MinFireSize=2cells.
-  browser()
+  #browser()
   y <- sim$cTable2$y
   x <- sim$cTable2$p
   m.lw <- lowess(y~x,iter=2)
@@ -85,7 +83,7 @@ Init = function(sim) {
                 tol=1e-6,
                 w=w,
                 hatPE=hatPE)
-    adjp0 <- foo$minimum
+    adjP0 <- foo$minimum
   }
   else
     adjP0 <- minP0

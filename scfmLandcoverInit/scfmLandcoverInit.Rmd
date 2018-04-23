@@ -7,6 +7,9 @@ output: pdf_document
 
 This modules does some initial processing of an input Vegetation map to support expectations of fire regime simulator.
 
+The paramater __nonFlammClasses__ is a vector of land cover classes to be considered non-burnable. The example code below illustrates the default values for the Canada Land Cover 2005 land cover product. It's usefule to be able to change this set, e.g. to explore the sensitivity of the fire model to varying abundances of lakes or other non-vegetated areas. 
+
+All other parameters are standard.
 
 ```{r module_usage}
 library(SpaDES)
@@ -22,7 +25,8 @@ parameters <- list(
     scfmLandcoverInit= list(
     .useCache = "init",
     .plotInitialTime=0,
-    .plotInterval=NA
+    .plotInterval=NA,
+    nonFlammClasses = c( c(36, 37, 38, 39))  #default value shown
   )
 )
 
@@ -47,7 +51,7 @@ newSim<-spades(mySim, notOlderThan = Sys.time())
 
 ## Plotting
 
-the input and reclassified map if __.plotInitialTime__ is not NA;
+the input and reclassified map are plotted if __.plotInitialTime__ is not __NA__;
 
 
 ## Input data

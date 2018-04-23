@@ -58,13 +58,13 @@ Init <- function(sim) {
   
   #Project the study area into each input raster, then crop and mask; 
   #Then project result back into the sim projection.
- 
+  #browser()
   studyAreaTmp <- spTransform(sim$studyArea, CRSobj =vegProjection)
   sim$vegMap <-  crop(sim$vegMapInit, studyAreaTmp)
   crs(sim$vegMap) <- vegProjection
-  sim$vegMap <- mask(sim$vegMap, studyAreaTmp) #
-  sim$vegMap <- projectRaster(sim$vegMap, crs=simProjection, method="ngb")
-  sim$Mask <- vegMap
+  sim$vegMap <- mask(sim$vegMap, studyAreaTmp) #É
+  #sim$vegMap <- projectRaster(sim$vegMap, crs=simProjection, method="ngb", to=sim$vegMapInit)
+  sim$Mask <- sim$vegMap
   sim$Mask[] <- ifelse(is.na(sim$vegMap[]), NA, 1)
   
   tmp <- getColors(sim$vegMapInit)[[1]]        # mask removes colors!
@@ -73,7 +73,7 @@ Init <- function(sim) {
   ageProjection <- crs(sim$ageMapInit)
   studyAreaTmp <- spTransform(sim$studyArea, CRSobj =ageProjection)
   sim$ageMap <-  crop(sim$ageMapInit, studyAreaTmp)
-  crs(sim$ageMap) <- ageProjection
+ # crs(sim$ageMap) <- ageProjection
   sim$ageMap <- mask(sim$ageMap,studyAreaTmp)
   sim$ageMap <- projectRaster(sim$ageMap,to=sim$vegMap,method="ngb")
   

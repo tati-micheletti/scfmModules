@@ -13,6 +13,7 @@ defineModule(sim, list(
   reqdPkgs = list("raster","data.table","magrittr"),
   parameters = rbind(
     defineParameter("pSpread","numeric", 0.23, 0, 1, desc="Percolation spread probability"),
+    defineParameter("pOverRide","numeric", NA, 0, 1, desc="Set it in the pars no matter the driver says"),
     defineParameter("returnInterval", "numeric", 1.0, NA, NA, desc="Time interval between burn events"),
     defineParameter("startTime", "numeric", 0, NA, NA, desc="Simulation time at which to initiate burning"),
     defineParameter(".plotInitialTime", "numeric", NA, NA, NA, "Time of first Plot event, or NA"),
@@ -70,6 +71,7 @@ Init <- function(sim) {
     stop("need to give me something!")
   }
   sim$burnMap<-sim$flammableMap * 0  # 0 * NA = NA
+  
   sim$spreadState <- data.table(NULL)
   setColors(sim$burnMap,n=4) <- c("grey95", "green", "yellow", "red")
   
@@ -88,23 +90,35 @@ sPlot <- function(sim){
 
 burnEmUp <- function(sim){    #name is a homage to Walters and Hillborne
   
-  pSpread <- if ("scfmPars" %in% names(objs(sim)))
-              sim$scfmPars$pSpread
-             else
-               P(sim)$pSpread
-  maxSize <- if ("scfmPars" %in% names(objs(sim)))
-              sim$scfmPars$maxBurnCells
-             else
-              ncell(sim$burnMap)*0.9
   #browser()
-  #pSpread=0.27
+  if (is.na(P(sim)$pOverRide)){
+    pSpread <- if ("scfmPars" %in% names(objs(sim)))
+                sim$scfmPars$pSpread
+               else
+                P(sim)$pSpread
+  }
+  else
+    pSpread <- P(sim)$pOverRide
+  
+  pMap <- sim$flammableMap
+  pMap <- (!pMap) * pSpread
+
+  
+  maxSize <- if ("scfmPars" %in% names(objs(sim)))
+                sim$scfmPars$maxBurnCells
+             else
+                ncell(sim$burnMap)*0.9
+
   values(sim$burnMap) <- 0
   sim$spreadState <- data.table(NULL) #ensure always in a determinate state
   useSSE <- "spreadStateE" %in% names(objs(sim)) &&  nrow(sim$spreadStateE) > 0
   if (useSSE || ("ignitionLoci" %in% names(objs(sim)) && length(sim$ignitionLoci) > 0)){
     sim$spreadState <- SpaDES.tools::spread(sim$flammableMap,
-                       spreadProb = pSpread,
+                       spreadProb = pMap,
                        spreadState = if (useSSE) sim$spreadStateE else NA,
+                       #
+                       #start = if (useSSE) NA else sim$ignitionLoci,
+                       #asRaster = FALSE,
                        loci = if (useSSE) NA else sim$ignitionLoci,
                        #loci = sim$ignitionLoci,
                        directions = sim$nNbrs,
@@ -114,7 +128,7 @@ burnEmUp <- function(sim){    #name is a homage to Walters and Hillborne
   
     values(sim$burnMap)[sim$spreadState[,indices]] <- 3   
     if ("spreadStateE" %in% names(objs(sim))){
-      values(sim$burnMap)[sim$spreadStateE[,indices]] <- 2 #mark the escapes specially
+      values(sim$burnMap)[sim$spreadStateE[,indices]] <- 2 #mark the escapes speciaxly
     }
     if ("ignitionLoci" %in% names(objs(sim))){
       values(sim$burnMap)[sim$ignitionLoci] <- 1           #mark the initials specialy

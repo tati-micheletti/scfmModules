@@ -1,26 +1,37 @@
 ---
 title: "scfmCrop"
-author: "Module Author"
-date: "10 July 2015"
+author: "Steve Cumming and Eliot McIntire"
+date: "03 April 2018"
 output: pdf_document
 ---
 
-Module documentation should be written so that others can use your module.
-This is a template for module documentation, and should be changed.
+This module creates the initial vegetation and patch age maps for fire regime simulations. The basic user input is a shapefile __studyArea__. Age and vegetation maps __vegMapInit__ and __ageMapInit__ are loaded from the module's __data__ directory unless provided by the user. 
 
-## Plotting
+__vegMapInit__ provides the template resolution and projection for the simulation. If additional layers than the age map are desired, they should be processed in the same manner as __ageMapInit__.
 
-Write what is plotted.
+There is no velidation that the __studyArea__ is contained within the extent of __vegMapInit__: this should be verified.
 
-## Saving
-
-Write what is saved.
 
 ## Input data
 
+__vegMapInit__ is the 250m resolution Land Cover Map of Canada 2005 (v1.2), which is classified multispectral imagery from the Modis sensor. 
+
+__ageMapInit__ is a synthetic 1km resolution product. 
+
+The references for these two data products are:
+
+Latifovic, R., Z-L, Zhu, J. Cihlar, C. Giri, I. Olthof, 2004. Land cover mapping of North and Central America –
+Global Land Cover 2000. Remote Sensing of Environment. 89:116-127. The on-line reference is __ftp:\ccrs.nrcan.gc.ca\AD\EMS\Landcover2005__.
+
+Pan, Y., Chen, J. M., Birdsey, R., McCullough, K., He, L., & Deng, F. (2011). Age structure and disturbance legacy of North American forests. Biogeosciences 8(3): 715-732. doi:10.5194/bg-8-715-2011.
+
 ## Output data
 
-## Anticipated linkages to other modules
+__vegMap__ cropped and masked to __studyArea__
+__ageMap__ reprojected to the projection and resolution and extent of __vegMap__, with the equivalent mask.
+__Mask__ derived from __vagMap__, values 1 or __NA__ depending on cell's being within the __studyArea__ or not. 
+
+The following code chunk loads and plots a specifed polygon from the Ecoregion shapefile, obtained onoine from NRCAN.
 
 
 ```{r loadShp, echo=FALSE}
@@ -39,7 +50,7 @@ print(paste("class(studyArea) =",class(studyArea)))
 Plot(studyArea)
 ```
 
-Now we can test the fire regime estimatorm and its GIS operations, and thr Caching of the database.
+The following code chunk will create the cropped maps in simlist mySim. The two resultant maps are plotted. 
 
 ```{r module_usage, message=FALSE}
 #Make sure to setwd to project directory
@@ -63,8 +74,13 @@ paths <- list(
   outputPath = outputDir
 )
 
+dev.off()
+dev(4)
+newPlot()
 mySim <- simInit(times = times, params = parameters, modules = modules,
                  objects = objects, paths = paths)
+Plot(mySim$vegMap, mySim$ageMap)
 tmp <- spades(mySim,debug=FALSE)
 ```
+
 
