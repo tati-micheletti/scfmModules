@@ -35,7 +35,7 @@ library(magrittr)
 #inputDir <- file.path(tempdir(), "inputs") %>% checkPath(create = TRUE)
 
 # set the directories
-baseDir <- getwd()
+workDirectory <- getwd()
 
 paths <- list(
   cachePath = file.path(workDirectory, "cache"),
@@ -49,6 +49,7 @@ setPaths(modulePath = paths$modulePath, inputPath = paths$inputPath, outputPath 
 ## list the modules to use
 modules <- list("loadYieldTables")
 
+objects <- list()
 times <- list(start = 0, end = 10)
 parameters <- list(
   .globals = list(burnStats = "nPixelsBurned"),
@@ -67,6 +68,15 @@ spades(mySim)
 plot(mySim$yieldTables$AB,xlab="Stand Age", ylab="Volume (m^3/ha)")
 ```
 
+
+
+#===============# WORK FROM HERE ON, BUT ABOVE DOESN'T WORK #==============#
+
+To fix it:
+1. Need to see what the module is doing.
+2. Correct for the objects not inputed and outputed in metadata
+
+#==========================================================================#
 
 # One time AAC Calculations
 
