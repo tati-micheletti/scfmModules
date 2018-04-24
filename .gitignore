@@ -23,3 +23,5 @@ NFDB_point
 #Ecoregions
 #Ecodistricts
 *.prj
+*.rda
+backpack.db

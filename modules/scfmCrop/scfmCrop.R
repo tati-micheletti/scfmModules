@@ -45,8 +45,6 @@ doEvent.scfmCrop = function(sim, eventTime, eventType, debug=FALSE) {
 
 Init <- function(sim) {
 
-  #browser()
-  
   vegProjection <- crs(sim$vegMapInit)
   
   if (is.na(crs(sim$studyArea)))            #in case it was sampled from the vegmap.
@@ -59,7 +57,7 @@ Init <- function(sim) {
   #Project the study area into each input raster, then crop and mask; 
   #Then project result back into the sim projection.
   #browser()
-  studyAreaTmp <- spTransform(sim$studyArea, CRSobj =vegProjection)
+  studyAreaTmp <- spTransform(sim$studyArea, CRSobj = vegProjection)
   sim$vegMap <-  crop(sim$vegMapInit, studyAreaTmp)
   crs(sim$vegMap) <- vegProjection
   sim$vegMap <- mask(sim$vegMap, studyAreaTmp) #É
@@ -89,6 +87,9 @@ Init <- function(sim) {
 
 .inputObjects <- function(sim){
   
+  shape <- readOGR(dsn = file.path(inputPath(sim), "ecodistricts"), layer = "ecodistricts") # ADDED TATI
+  sim$studyArea <- shape[shape$FID==339,] # ADDED TATI
+    
   if (!("ageMapInit" %in% sim$.userSuppliedObjNames)){
     fp <- file.path(dataPath(sim),"ageMapInit","age.tif")
     sim$ageMapInit <- raster(fp)

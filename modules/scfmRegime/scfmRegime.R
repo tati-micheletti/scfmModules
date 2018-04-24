@@ -109,7 +109,7 @@ Init <- function(sim) {
 
 
 .inputObjects <- function(sim){
-  if ( !("studyArea" %in% sim$.userSuppliedObjNames))
+  if (!suppliedElsewhere("studyArea", sim)) # ADDED TATI
     stop("No studyArea provided")
   
   if (!("firePointsDB" %in% sim$.userSuppliedObjNames)){

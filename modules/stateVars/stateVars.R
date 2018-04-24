@@ -124,6 +124,8 @@ Update <- function(sim){
   
   sim <- heightFromAge(sim)
   
+  browser()
+  
   return(invisible(sim))
 }
 
