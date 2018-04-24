@@ -69,10 +69,6 @@ In this section, we implement a simple AAC caculator based on Hanzlik's (1922) f
  
 The can be calculated given a yield curve and an age structure as follows.
  
-
-```
-
-
 # One time AAC Calculations
 
 
