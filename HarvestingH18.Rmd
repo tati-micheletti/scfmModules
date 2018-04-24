@@ -31,24 +31,10 @@ To illustrate some features of a general Volume Age table/data assimilation proc
 ```{r test_yieldTables}
 library(SpaDES)
 library(magrittr)
-
+ 
 #inputDir <- file.path(tempdir(), "inputs") %>% checkPath(create = TRUE)
-
-# set the directories
-baseDir <- getwd()
-
-paths <- list(
-  cachePath = file.path(workDirectory, "cache"),
-  modulePath = file.path(workDirectory, "modules"),
-  inputPath = file.path(workDirectory, "inputs"),
-  outputPath = file.path(workDirectory, "outputs")
-)
-
-setPaths(modulePath = paths$modulePath, inputPath = paths$inputPath, outputPath = paths$outputPath, cachePath = paths$cachePath)
-
-## list the modules to use
-modules <- list("loadYieldTables")
-
+baseDir<-"/Users/stevec/Dropbox/SpaDES/Data"
+outputDir <- file.path(tempdir(), "outputs")  %>% checkPath(create = TRUE)
 times <- list(start = 0, end = 10)
 parameters <- list(
   .globals = list(burnStats = "nPixelsBurned"),
@@ -59,12 +45,31 @@ parameters <- list(
     )
   #module2 = list(param1 = value1, param2 = value2)
 )
-
+modules <- list("loadYieldTables")
+objects <- list()
+paths <- list(
+  cachePath = file.path(outputDir, "cache"),
+  modulePath = file.path(".","Harvesting"),
+  inputPath = baseDir,
+  outputPath = outputDir
+)
+ 
 mySim <- simInit(times = times, params = parameters, 
                  modules = modules,
                  objects = objects, paths = paths)
 spades(mySim)
 plot(mySim$yieldTables$AB,xlab="Stand Age", ylab="Volume (m^3/ha)")
+```
+ 
+ 
+# One time AAC Calculations
+ 
+ 
+In this section, we implement a simple AAC caculator based on Hanzlik's (1922) formula.
+ 
+The can be calculated given a yield curve and an age structure as follows.
+ 
+
 ```
 
 
