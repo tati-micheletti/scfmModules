@@ -85,7 +85,11 @@ Init <- function(sim) {
  #  sim$ageMap <- projectRaster(sim$ageMap,to=sim$vegMap,method="ngb")
  #  
   #endCluster()
-    
+  
+  browser() 
+  
+  #============================================# RESTRAT TOMORROW HERE TO SEE WHY THIS BELOW IS THROWING ERRORS!!! #=============================================  
+  
   if(sum(!is.na(getValues(sim$ageMap)))==0)
       stop("There are no age data provided with input age map")
   if(sum(!is.na(getValues(sim$vegMap)))==0) 
@@ -130,21 +134,71 @@ Init <- function(sim) {
     } else stop("VegMap not supplied an/or not available online")
   
   if (!suppliedElsewhere("ageMap",sim)){
-    
-    sA <- if(suppliedElsewhere(sim$studyArea)) SpatialPolygons(sim$studyArea@polygons,proj4string=sim$studyArea@proj4string) else NULL
-    sADF <- if(suppliedElsewhere(sim$studyArea)) sim$studyArea else NULL
-    rTm <- if(suppliedElsewhere(sim$vegMap)) sim$vegMap else NULL
 
-    browser() #Error in match.arg(algo) : 'arg' must be NULL or a character vector
+    # browser()
     
-    tryCatch({sim$ageMap <- prepInputs(targetFile = asPath(file.path(dataPath(sim), "can_age04_1km.tif")),
-                                      destinationPath = asPath(file.path(dataPath(sim))),
-                                      studyArea = sADF,
-                                      rasterToMatch = rTm)},
-             finally = {sim$ageMap <- raster(raster::extent(0,49,0,49),nrow=200, ncol=200, vals=as.integer(runif(200*200)*150))
-             warning("Age map was not supplied, creating a random raster.")})
-    }
+    # ORIGINAL TRIAL
+    
+    # tryCatch({sim$ageMap <- prepInputs(targetFile = asPath(file.path(dataPath(sim), "can_age04_1km.tif")),
+    #                                   destinationPath = asPath(file.path(dataPath(sim))),
+    #                                   studyArea = sADF,
+    #                                   rasterToMatch = rTm)},
+    #          finally = {sim$ageMap <- raster(raster::extent(0,49,0,49),nrow=200, ncol=200, vals=as.integer(runif(200*200)*150))
+    #          warning("Age map was not supplied, creating a random raster.")})
+
+    #=====================================================
+    
+    # NOT WORKING: TEMP FILE / URL
+    
+    # sA <- if(suppliedElsewhere(sim$studyArea)) SpatialPolygons(sim$studyArea@polygons,proj4string=sim$studyArea@proj4string) else NULL
+    # sADF <- if(suppliedElsewhere(sim$studyArea)) sim$studyArea else NULL
+    # rTm <- if(suppliedElsewhere(sim$vegMap)) sim$vegMap else NULL
+
+  #  browser() #Error in match.arg(algo) : 'arg' must be NULL or a character vector
+    
+    # sim$ageMap <- prepInputs(url = "https://drive.google.com/file/d/1lwszwnFjZ3DQ3BBQ7ikiAlN6FXyy2uNX/view?usp=sharing",
+    #                          targetFile = file.path(tempdir(), "ageMap", "NA_TREEAGE_1096/data", "can_age04_1km.tif"),
+    #                          destinationPath = file.path(tempdir(), "ageMap", "NA_TREEAGE_1096/data"),
+    #                          studyArea = sADF,
+    #                          rasterToMatch = rTm)
+    
+    
+    #=====================================================
+    
+    # NOT WORKING: LOCAL FILE WITH / WITHOUT asPath()
+    
+    # sim$ageMap <- prepInputs(targetFile = asPath(file.path(dataPath(sim), "can_age04_1km.tif")),
+    #                          destinationPath = asPath(file.path(dataPath(sim))),
+    #                          studyArea = sADF,
+    #                          rasterToMatch = rTm)
+    
+    #=====================================================
+    
+    # Workaround
+
+    sim$ageMap <- raster::raster(asPath(file.path(dataPath(sim), "can_age04_1km.tif")))
+
+    cutlinePath <- file.path(inputPath(sim), "studyArea.shp")
+    
+      gdalUtils::gdalwarp(srcfile = file.path(dataPath(sim), "can_age04_1km.tif"), # Raster file path
+               dstfile = file.path(dataPath(sim), "ageMapCropped.tif"), # Cropped raster file name
+               overwrite = TRUE, # If you alreday have a raster with the same name and want to overwrite it
+               cutline = cutlinePath, # Shapefile path to use for masking
+               dstalpha = TRUE, # Creates an output alpha band to identify nodata (unset/transparent) pixels
+               s_srs= as.character(crs(sim$ageMap)), #Projection from the source raster file
+               t_srs= as.character(crs(sim$templateRaster)), # Projection for the cropped file, it is possible to change projection here
+               multi = TRUE, # Use multithreaded warping implementation.
+               of = "GTiff", # Select the output format
+               crop_to_cutline = TRUE, # Crop the raster to the shapefile
+               tr = res(sim$templateRaster)) # Raster resolution, not sure it needs to be the same from original raster
+      
+      sim$ageMap <- raster::raster(asPath(file.path(dataPath(sim), "ageMapCropped.tif")))
+    
+    #=====================================================
+    
   
+    }
+
   if (!suppliedElsewhere("ageMapInit",sim)){
     suppliedElsewhere("ageMap",sim)
     sim$ageMapInit <- sim$ageMap
@@ -153,8 +207,9 @@ Init <- function(sim) {
   if (suppliedElsewhere("ageMap", sim)){
     sim$flammableMap <- sim$ageMap * 0   #this, on the other hand, had better exist
     #    sim$ageMap[] <- P(sim)$initialAge ===> Not sure what this does 
-  } 
-  else {
+  }
+      
+ else {
     
     sim$flammableMap <- raster(raster::extent(0,49,0,49),nrow=200, ncol=200, vals=0)
     warning("Age map was not supplied, creating a random raster.")
