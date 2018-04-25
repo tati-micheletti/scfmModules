@@ -109,6 +109,7 @@ Init <- function(sim) {
 
 
 .inputObjects <- function(sim){
+  
   if (!suppliedElsewhere("studyArea", sim)) # ADDED TATI
     stop("No studyArea provided")
   
