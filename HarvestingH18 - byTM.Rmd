@@ -117,8 +117,6 @@ modules <- list(  "scfmCrop", "scfmLandcoverInit",
   "loadYieldTables", "Hanzlik", "harvest", 
   "stateVars")
 
-#"vegMapToStrataMap", ==> Not creating mySim. Why?
-
 # "vegMapToStrataMap" ==> not returning mySim Check
 
 objects <- list(
