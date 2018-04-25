@@ -21,10 +21,12 @@ defineModule(sim, list(
   ),
   inputObjects = bind_rows(
     expectsInput(objectName="flammableMap", objectClass = "RasterLayer", desc="Template map"),
-    expectsInput(objectName = "ageMap", objectClass = "RasterLayer", desc = "ageMap to update")
+    expectsInput(objectName = "ageMap", objectClass = "RasterLayer", desc = "ageMap to update"),
+    expectsInput(objectName = "ageMapInit", objectClass ="RasterLayer", desc = "national 1km2 ageMap")
   ),
   outputObjects = bind_rows(
-    createsOutput(objectName = "ageMap",  objectClass = "RasterLayer", desc="Duh")
+    createsOutput(objectName = "ageMap",  objectClass = "RasterLayer", desc="Duh"),
+    createsOutput(objectName = "flammableMap", objectClass = "RasterLayer", desc = "")
   )
 ))
 
@@ -52,12 +54,15 @@ doEvent.ageModule = function(sim, eventTime, eventType, debug = FALSE) {
 }
 
 Init <- function(sim) {
-  if (!("ageMap" %in% names(objs(sim)))){
-    sim$ageMap <- sim$flammableMap    #this, on the other hand, had better exist
-    sim$ageMap[] <- P(sim)$initialAge 
-  }
+  
+
   # we will use our colour choices, not whatever may have come with the loaded map.
-  sim$ageMap <- setColors(sim$ageMap,n=10,colorRampPalette(c("LightGreen", "DarkGreen"))(10))
+  
+  browser() # Identify how many values there are in ageMap and set to the number of colours
+  
+#  cols <- length(unique(getValues(sim$ageMap=))) ==> Something in this direction
+  sim$ageMap <- setColors(sim$ageMap,n=cols,colorRampPalette(c("LightGreen", "DarkGreen"))(cols))
+  
   return(invisible(sim))
 }
 
@@ -71,6 +76,32 @@ Age <- function(sim){
 
 .inputObjects <- function(sim){
   
+  if (!suppliedElsewhere("ageMap",sim)){
+    
+    tryCatch(sim$ageMap <- prepInputs(targetFile = asPath(file.path(dataPath(sim), "can_age04_1km.tif")),
+                             destinationPath = asPath(file.path(dataPath(sim))),
+                             studyArea = ifelse(suppliedElsewhere(sim$studyArea), sim$studyArea, NULL),
+                             rasterToMatch = ifelse(suppliedElsewhere(sim$vegMap), sim$vegMap, NULL)), 
+             finally = {sim$ageMap <- raster(raster::extent(0,49,0,49),nrow=200, ncol=200, vals=as.integer(runif(200*200)*150))
+               warning("Age map was not supplied, creating a random raster.")})
+  }
+    
+  if (!suppliedElsewhere("ageMapInit",sim)){
+    suppliedElsewhere("ageMap",sim)
+    sim$ageMapInit <- sim$ageMap
+  } else stop("ageMap not supplied, and ageMapInit failed to be created.")
+  
+    
+  if (suppliedElsewhere("ageMap", sim)){
+    sim$flammableMap <- sim$ageMap * 0   #this, on the other hand, had better exist
+    #    sim$ageMap[] <- P(sim)$initialAge ===> Not sure what this does 
+    
+  }
+  else {
+    sim$flammableMap <- raster(raster::extent(0,49,0,49),nrow=200, ncol=200, vals=0)
+    warning("Age map was not supplied, creating a random raster.")
+  }
+
   
   return(invisible(sim))
 }
