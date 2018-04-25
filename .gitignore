@@ -25,3 +25,4 @@ NFDB_point
 *.prj
 *.rda
 backpack.db
+.Rproj.user
