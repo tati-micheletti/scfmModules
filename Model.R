@@ -26,24 +26,25 @@ N_LATE <- sum(ageMap[ac[,1]]>90)/24
 N_RICH <- sum(actab>0)
 
 Modules : 
-  "scfmCrop", "scfmLandcoverInit", 
+  c("scfmCrop", "scfmLandcoverInit", 
   "scfmRegime", "scfmDriver", "scfmIgnition", "scfmEscape", "scfmSpread", 
-  "ageModule", "mapBurns"
+  "ageModule", "mapBurns",
   "loadYieldTables", "vegMapToStrataMap", "Hanzlik", "harvest", 
-  "stateVars", "caribou"
-  "habitatClassMap", "birdsAlberta" 
+  "stateVars", "caribou",
+  "habitatClassMap", "birdsAlberta") 
   
-Need to write: "vegMapToStrataMap", "habitatClassMap", "birdsAlberta"
+# Need to write: "vegMapToStrataMap", "habitatClassMap", "birdsAlberta"
   
-  Caribou gets all from the disturbance map ("stateVars")
-  "birdsAlberta" needs "habitatClassMap" and "ageMap"
+#  Caribou gets all from the disturbance map ("stateVars")
+#  "birdsAlberta" needs "habitatClassMap" and "ageMap"
 
   
   # TO DO:
   # 
-  # Bring ecodistrics to prepInputs from : http://sis.agr.gc.ca/cansis/nsdb/ecostrat/district/ecodistrict_shp.zip
-  # Use the shapefile from FID 339
-  # use prepInputs on vegMap and ageMaps (ageMap bring from file)
+  # Bring ecodistrics to prepInputs from : http://sis.agr.gc.ca/cansis/nsdb/ecostrat/district/ecodistrict_shp.zip [OK]
+  # Use the shapefile from FID 339 [OK]
+  # use prepInputs on vegMap and ageMaps (ageMap bring from file) [OK] OBS: AgeMap didn't work! Loaded from folder with raster()
+  # Need to upload data to folders that don't have it: ie. NFDB_point on scfmRegime
   # Make resolution of pi ha (3.14ha)
   # Alter scfmCrop to make the cropping using prepInputs
   # Then check if all the others work
