@@ -128,11 +128,13 @@ objects <- list(
                   pIgnition=0.00004, #0.0000112,
                   maxBurnCells=NA
                   ),
-                ageMap = raster(raster::extent(0,49,0,49),nrow=200, ncol=200, vals=as.integer(runif(200*200)*150)),
-                strataMap = randomPolygons(ageMap,numTypes=8),
+                numTypes = 8,
                 landscapeAttr = list(cellSize=6.25),
-                flammableMap = ageMap * 0,
-                nNbrs=8
+                nNbrs = 8,
+                url.vegMap = "ftp://ftp.ccrs.nrcan.gc.ca/ad/NLCCLandCover/LandcoverCanada2005_250m/LandCoverOfCanada2005_V1_4.zip",
+                url.studyArea = "http://sis.agr.gc.ca/cansis/nsdb/ecostrat/district/ecodistrict_shp.zip",
+                tempPath.vegMap = file.path(tempdir(), "vegMap"),
+                tempPath.studyArea = file.path(tempdir(), "studyArea")
             )
 
 mySim <- simInit(times = times, params = parameters, modules = modules,objects = objects, paths = paths)
