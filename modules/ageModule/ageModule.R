@@ -85,11 +85,12 @@ Age <- function(sim){
              finally = {sim$ageMap <- raster(raster::extent(0,49,0,49),nrow=200, ncol=200, vals=as.integer(runif(200*200)*150))
                warning("Age map was not supplied, creating a random raster.")})
   }
-    
+   
+   
   if (!suppliedElsewhere("ageMapInit",sim)){
     suppliedElsewhere("ageMap",sim)
     sim$ageMapInit <- sim$ageMap
-  } else stop("ageMap not supplied, and ageMapInit failed to be created.")
+  }
   
     
   if (suppliedElsewhere("ageMap", sim)){
