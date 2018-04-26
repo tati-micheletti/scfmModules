@@ -1,6 +1,7 @@
 defineModule(sim, list(
+  
   name = "vegMapToStrataMap",
-  description = "aassign yield tables (strata) to vegetation classes", #"insert module description here",
+  description = "Assign yield tables (strata) to vegetation classes",
   keywords = NA, # c("insert key words here"),
   authors = person("First", "Last", email = "first.last@example.com", role = c("aut", "cre")),
   childModules = character(0),
@@ -14,7 +15,7 @@ defineModule(sim, list(
   parameters = rbind(
     defineParameter(".plotInitialTime", NA, NA, NA, desc = "duh"),
     defineParameter(".plotInterval", NA, NA, NA, desc = "duh"),
-    defineParameter("returnInterval", NA, NA, NA, desc = "duh"),
+    defineParameter("returnInterval", 0, NA, NA, desc = "duh"),
     defineParameter("startTime", 0, NA, NA, desc = "duh")
     )
   ),
@@ -32,37 +33,44 @@ defineModule(sim, list(
 doEvent.vegMapToStrataMap = function(sim, eventTime, eventType) {
   switch(
     eventType,
+    
     init = {
       sim <- Init(sim)
       # schedule future event(s)
       sim <- scheduleEvent(sim, P(sim)$startTime, "vegMapToStrataMap", "stratify")
       sim <- scheduleEvent(sim, P(sim)$.plotInitialTime, "vegMapToStrataMap", "plot")
     },
+    
     stratify = {
+      
       sim <- Stratify(sim)
       sim <- scheduleEvent(sim, time(sim) + P(sim)$returnInterval, "vegMapToStrataMap", "stratify")
     },
+    
     plot = {
+      
        Plot(sim$strataMap)
        scheduleEvent(sim, time(sim) + P(sim)$.plotInterval, "vegMapToStrataMap", "plot")
     },
+    
     warning(paste("Undefined event type: '", current(sim)[1, "eventType", with = FALSE],
                   "' in module '", current(sim)[1, "moduleName", with = FALSE], "'", sep = ""))
   )
-  return(invisible(sim))
-}
-
-
-Stratify <- function(sim){
   
   return(invisible(sim))
 }
 
 Init <- function(sim) {
  
-  sim$strataMap <- raster::raster(sim$vegMap) 
-  sim$strataMap[] <- sim$strataMap[] * 0
+  if (!suppliedElsewhere("sim$strataMap", sim)){
+    
+    sim$strataMap <- sim$vegMap
+    
+    # LOAD TABLES, CONVERT VALUES (idea on it from scfmLandcoverInit): sim$flammableMap[] <- ifelse(!is.na(sim$flammableMap[])&sim$flammableMap[] %in% P(sim)$nonFlammClasses, 1, 0)
+
+  }
   
   return(invisible(sim))
+  
 }
 
