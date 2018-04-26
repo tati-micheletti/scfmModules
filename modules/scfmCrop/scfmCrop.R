@@ -1,3 +1,4 @@
+
 stopifnot(packageVersion("SpaDES") >= "0.99.0")
 defineModule(sim, list(
   name="scfmCrop",
@@ -43,7 +44,9 @@ defineModule(sim, list(
 
 doEvent.scfmCrop = function(sim, eventTime, eventType, debug=FALSE) {
   if (eventType=="init") {
+    
     sim <- Init(sim)
+    
   } else {
     warning(paste("Undefined event type: '", events(sim)[1, "eventType", with=FALSE],
                   "' in module '", events(sim)[1, "moduleName", with=FALSE], "'", sep=""))
@@ -86,48 +89,49 @@ Init <- function(sim) {
  #  
   #endCluster()
   
-  browser() 
-  
-  #============================================# RESTRAT TOMORROW HERE TO SEE WHY THIS BELOW IS THROWING ERRORS!!! #=============================================  
-  
-  if(sum(!is.na(getValues(sim$ageMap)))==0)
-      stop("There are no age data provided with input age map")
-  if(sum(!is.na(getValues(sim$vegMap)))==0) 
-    stop("There are no vegatation data provided with input vegatation map")
+  if(sum(raster::getValues(sim$ageMap), na.rm = TRUE)==0) stop("There are no age data provided with input age map")
+  if(sum(raster::getValues(sim$vegMap), na.rm = TRUE)==0) stop("There are no vegatation data provided with input vegatation map")
   
   return(invisible(sim))
 }
 
 .inputObjects <- function(sim){
   
-  sim$templateRaster <- Cache(prepInputs, url = sim$url.vegMap,
+  sim$templateRaster <- Cache(prepInputs, url = sim$url.vegMap, # [ IMPROVE ] Add tryCatch() and return warning that no template could be downloaded, look for it in inputs, it needs to have the specific name "templateRaster.tif"?
                               destinationPath = asPath(sim$tempPath.vegMap))
   
-  # shape <- readOGR(dsn = file.path(inputPath(sim), "ecodistricts"), layer = "ecodistricts") # ADDED TATI
-  # sim$studyArea <- shape[shape$FID==339,] # ADDED TATI
-
   if(!file.exists(file.path(inputPath(sim), "studyArea.shp"))){
     sim$studyArea <- Cache(prepInputs, url = sim$url.studyArea,
-                           destinationPath = sim$tempPath.studyArea,
-                           rasterToMatch = sim$templateRaster) 
+                           destinationPath = sim$tempPath.studyArea)#,rasterToMatch = sim$templateRaster) # RasterToMatch temporarily not working
+    sim$studyArea <- projectInputs(studyArea, raster::crs(sim$templateRaster))
     sim$studyArea <- sim$studyArea[sim$studyArea$ECODISTRIC==339,]
     
-    rgdal::writeOGR(obj = sim$studyArea, dsn = file.path(inputPath(sim), "studyArea.shp"), layer = "studyArea.shp", driver = "ESRI Shapefile")
+#    rgdal::writeOGR(obj = sim$studyArea, dsn = file.path(inputPath(sim), "studyArea.shp"), layer = "studyArea.shp", driver = "ESRI Shapefile")
     
   } else {
     
-    sim$studyArea <- Cache(prepInputs, 
-                           targetFile = asPath(file.path(inputPath(sim), "studyArea.shp")),
-                           destinationPath = asPath(file.path(inputPath(sim))),
-                           rasterToMatch = sim$templateRaster)
-    
-    studyAreaDF <- rgdal::readOGR(dsn = file.path(inputPath(sim),"studyArea.shp"))
-    
+    sim$studyArea <- prepInputs(targetFile = asPath(file.path(inputPath(sim), "studyArea.shp")),
+                           destinationPath = asPath(file.path(inputPath(sim))))#rasterToMatch = sim$templateRaster)
   }
-
-  sim$vegMap <- Cache(raster::crop, sim$templateRaster, sim$studyArea)
-  sim$vegMap <- Cache(fastMask, sim$vegMap, studyAreaDF) # if not needed, comment lines pid, pdf
-
+  
+  if(suppliedElsewhere("templateRaster", sim)){
+  sim$vegMap <- Cache(raster::crop, sim$templateRaster, sim$studyArea) # # [ IMPROVE ] Update to postProc
+  sim$vegMap <- Cache(raster::mask, sim$vegMap, sim$studyArea) # # [ IMPROVE ] Update to postProc
+  } else {stop("Couldn't find template map")}
+  
+  if(!suppliedElsewhere("sim$areaInHa")){
+    sim$areaInHa <- pi
+    warning("Using 'pi' hectares as raster resolution")
+  }
+  
+  # Changing resolution
+  tempRes <- vegMap
+  newRes <- sqrt(10^4 * sim$areaInHa)
+  raster::res(tempRes) <- c(newRes,newRes)
+  sim$vegMap <- raster::resample(templateRaster, tempRes, method="ngb") %>%
+    raster::mask(studyArea)
+  sim$templateRaster <- sim$vegMap
+  
   if (!suppliedElsewhere("vegMapInit",sim)){
     suppliedElsewhere("vegMap",sim)
       sim$vegMapInit <- sim$vegMap
@@ -135,8 +139,12 @@ Init <- function(sim) {
   
   if (!suppliedElsewhere("ageMap",sim)){
 
-    # browser()
-    
+    if(file.exists(file.path(dataPath(sim), "ageMapCropped.tif"))){
+      
+      sim$ageMap <- raster::raster(file.path(dataPath(sim), "ageMapCropped.tif"))
+
+    } else {
+      
     # ORIGINAL TRIAL
     
     # tryCatch({sim$ageMap <- prepInputs(targetFile = asPath(file.path(dataPath(sim), "can_age04_1km.tif")),
@@ -186,37 +194,41 @@ Init <- function(sim) {
                cutline = cutlinePath, # Shapefile path to use for masking
                dstalpha = TRUE, # Creates an output alpha band to identify nodata (unset/transparent) pixels
                s_srs= as.character(crs(sim$ageMap)), #Projection from the source raster file
-               t_srs= as.character(crs(sim$templateRaster)), # Projection for the cropped file, it is possible to change projection here
+               t_srs= as.character(crs(sim$vegMap)), # Projection for the cropped file, it is possible to change projection here
                multi = TRUE, # Use multithreaded warping implementation.
                of = "GTiff", # Select the output format
                crop_to_cutline = TRUE, # Crop the raster to the shapefile
-               tr = res(sim$templateRaster)) # Raster resolution, not sure it needs to be the same from original raster
+               tr = res(sim$vegMap)) # Raster resolution, not sure it needs to be the same from original raster
       
       sim$ageMap <- raster::raster(asPath(file.path(dataPath(sim), "ageMapCropped.tif")))
     
     #=====================================================
-    
+      }
   
-    }
-
+  }
+  
   if (!suppliedElsewhere("ageMapInit",sim)){
     suppliedElsewhere("ageMap",sim)
     sim$ageMapInit <- sim$ageMap
   } else stop("ageMap not supplied, and ageMapInit failed to be created.")
   
   if (suppliedElsewhere("ageMap", sim)){
-    sim$flammableMap <- sim$ageMap * 0   #this, on the other hand, had better exist
+
+    sim$flammableMap <- sim$ageMap   #this, on the other hand, had better exist
     #    sim$ageMap[] <- P(sim)$initialAge ===> Not sure what this does 
   }
       
  else {
     
-    sim$flammableMap <- raster(raster::extent(0,49,0,49),nrow=200, ncol=200, vals=0)
+    sim$ageMap <- raster(raster::extent(0,49,0,49),nrow=200, ncol=200, vals=0)
+    sim$flammableMap <- sim$ageMap
     warning("Age map was not supplied, creating a random raster.")
+    
   }
   
-  sim$strataMap <- randomPolygons(sim$ageMap,sim$numTypes)
+#  sim$strataMap <- randomPolygons(sim$ageMap,sim$numTypes)
+   # sim$Mask <- sim$vegMap # Might be sed in the scfmLandcoverInit 
+   # sim$Mask[] <- ifelse(is.na(sim$vegMap[]), NA, 1) # Might be sed in the scfmLandcoverInit 
   
   return(invisible(sim))
 }
-
