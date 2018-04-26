@@ -33,17 +33,28 @@ defineModule(sim, list(
 
 doEvent.scfmLandcoverInit = function(sim, eventTime, eventType, debug=FALSE) {
   switch(
-    eventType, 
+    eventType,
+    
     init =  {
+      
       sim <- Init(sim)
-      sim <- scheduleEvent(sim, P(sim)$.plotInitialTime,
-                         "scfmLandcoverInit", "plot")
-    },
+      sim <- scheduleEvent(sim, P(sim)$.plotInitialTime, "scfmLandcoverInit", "plot")
+
+     },
+    
     plot = {
+      
+      browser() #Test Plot
+      
       Plot(sim$vegMap, new=TRUE)
-      Plot(sim$flammableMap, legend=FALSE) # this is failing probably due to a bug in Plot
-                                           # EJM is working on it 20160224
+      
+      breakpoints <- c(0,1)
+      colors <- c("skyblue","red")
+      Plot(sim$flammableMap,breaks=breakpoints,col=colors) # this is failing probably due to a bug in Plot
+                                                           # EJM is working on it 20160224
+      
       sim <- scheduleEvent(sim, time(sim) + P(sim)$.plotInterval, "scfmLandcoverInit", "plot")
+      
     },
     warning(paste("Undefined event type: '", events(sim)[1, "eventType", with=FALSE],
                     "' in module '", events(sim)[1, "moduleName", with=FALSE], "'", sep=""))
@@ -51,66 +62,48 @@ doEvent.scfmLandcoverInit = function(sim, eventTime, eventType, debug=FALSE) {
   return(invisible(sim))
 }
 
-genFireMapAttr <- function(sim){
-  #browser()
-  #we assume the raster is a regular grid, not in lat-long
-  #cellSize <- mean(raster::values(area(sim$flammableMap,na.rm=TRUE)),
-  #                 na.rm=TRUE)*100 #area returns km^2!
-  cellSize <- prod(res(sim$flammableMap))/1e4  #copied below from template sim$vegMap
-  
-  if (is.na(cellSize))
-    stop("scfmLandcoverInit: cellSize is NA")
-  
-  nFlammable<-table(values(sim$flammableMap), useNA="no")["0"] 
-  if (sim$nNbrs==8)
-    w<-matrix(c(1,1,1,1,0,1,1,1,1),nrow=3,ncol=3)
-  else if (sim$nNbrs==4)
-    w<-matrix(c(0,1,0,1,0,1,0,1,0),nrow=3,ncol=3)
-  else 
-    stop("illegal global neighbours spec")
-  tmp <- focal(sim$flammableMap, w, na.rm=TRUE) #default function is sum(...,na.rm)
-  x <- values(tmp)
-  x <- x[raster::values(sim$flammableMap)==0] #only count neighbours for flammable cells!
-  x <- sim$nNbrs - x  #need to invert, because we are counting the nonflamy 1's
-  nv <- table(x,useNA="no")
-  nNbrs <- rep(0,9) #guard against the terrible chance that 
-  #not all nNbrs values are realised on the landscape. 
-  nNbrs[as.integer(names(nv))+1] <- nv
-  names(nNbrs) <- 0:8
-  sim$landscapeAttr<-list(cellSize=cellSize,nFlammable=nFlammable,
-                        burnyArea=cellSize*nFlammable, nNbrs=nNbrs)
-  return(invisible(sim))
-}
 
-### template initilization
 Init = function(sim) {
+
   # these classes are LCC05 specific
-  #browser()
-  
+
   #nonFlammClasses <- c(36, 37, 38, 39)  #should be a parameter.
-  oldClass <- 0:39
-  newClass <- ifelse(oldClass %in% P(sim)$nonFlammClasses,1,0)   #1 codes for non flammable 
-                                                                 #see mask argument for SpaDES::spread()
-  flammableTable <- cbind(oldClass, newClass)
-  sim$flammableMap <-raster::ratify(raster::reclassify(sim$vegMap, flammableTable),count=TRUE)
-  if ("Mask" %in% names(objs(sim))){
-    if (class(sim$Mask) == "RasterLayer") #should also check they conform.
-      sim$flammableMap <- sim$flammableMap * sim$Mask # NAs in Mask should 
-    else
-      stop("Invalid class for Mask: require RasterLayer")
-  }
+  # oldClass <- 0:39
+  # newClass <- ifelse(oldClass %in% P(sim)$nonFlammClasses,1,0)   #1 codes for non flammable  #see mask argument for SpaDES::spread()
+  # flammableTable <- cbind(oldClass, newClass)
+  # sim$flammableMap <-raster::ratify(raster::reclassify(sim$flammableMap, flammableTable),count=TRUE)
+  
+  sim$flammableMap[] <- ifelse(!is.na(sim$flammableMap[])&sim$flammableMap[] %in% P(sim)$nonFlammClasses, 1, 0)
+  
+#  sim$flammableMap <- setColors(sim$flammableMap,n=2,colorRampPalette(c("skyblue", "red"))(2))
+
+  #  sim$flammableMap <- raster::mask(sim$flammableMap, sim$studyArea)
+  
+  # if (suppliedElsewhere("Mask",sim)){
+  #   if (class(sim$Mask) == "RasterLayer"&
+  #       raster::extent(sim$Mask)==raster::extent(sim$flammableMap)&
+  #       identical(raster::crs(sim$Mask),raster::crs(sim$flammableMap))){
+  #     sim$flammableMap <- sim$flammableMap * sim$Mask # NAs in Mask should      
+  #   } #should also check they conform.
+  #   else
+  #     stop("Invalid class for Mask: require RasterLayer in the same projection and extent as flammableMap")
+  # }
+  
   #the count options should cause that "a column with frequencies is added. 
-  #setColors(sim$flammableMap, n=2) <- c("blue","red")
-  setColors(sim$flammableMap,n=2) <- c("skyblue", "red") 
+
   sim <- genFireMapAttr(sim)
+  
   return(invisible(sim))
 }
 
 
 .inputObjects <- function(sim){
+  
   if (!("nNbrs" %in% names(objs(sim)))){
-    warning("nNbrs set to 8 in scfmLandcoverInit..inputObjects")
+    
+    warning("Setting 'nNbrs' to 8 in scfmLandcoverInit..inputObjects")
     sim$nNbrs <- 8
   }
+  
   return(invisible(sim))
 }
