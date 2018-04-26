@@ -193,6 +193,9 @@ Event2 <- function(sim) {
                               destinationPath = sim$tempPath.vegMap)
   
   if(!file.exists(file.path(inputPath(sim), "studyArea.shp"))){
+    
+    browser()
+    
     sim$studyArea <- Cache(prepInputs, url = sim$url.studyArea,
                            destinationPath = sim$tempPath.studyArea,
                            rasterToMatch = sim$templateRaster) 
