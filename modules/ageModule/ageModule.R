@@ -55,21 +55,11 @@ doEvent.ageModule = function(sim, eventTime, eventType, debug = FALSE) {
 
 Init <- function(sim) {
   
-
-  # we will use our colour choices, not whatever may have come with the loaded map.
+# we will use our colour choices, not whatever may have come with the loaded map.
   
-  browser() # Identify how many values there are in ageMap and set to the number of colours
-  
-#  cols <- length(unique(getValues(sim$ageMap=))) ==> Something in this direction
+  cols <- length(which(!is.na(unique(getValues(sim$ageMap)))))
   sim$ageMap <- setColors(sim$ageMap,n=cols,colorRampPalette(c("LightGreen", "DarkGreen"))(cols))
   
-  return(invisible(sim))
-}
-
-Age <- function(sim){
-  oldest = if (is.na(P(sim)$maxAge)) 2^31-1 else P(sim)$maxAge
-  sim$ageMap <- setValues(sim$ageMap, pmin(oldest, 
-                                      getValues(sim$ageMap)+P(sim)$returnInterval))
   return(invisible(sim))
 }
 
@@ -78,29 +68,47 @@ Age <- function(sim){
   
   if (!suppliedElsewhere("ageMap",sim)){
     
+    if(file.exists(file.path(dataPath(sim),"ageMapCropped.tif"))){
+      
+      tryCatch(sim$ageMap <- prepInputs(targetFile = asPath(file.path(dataPath(sim), "ageMapCropped.tif")),
+                                        destinationPath = asPath(file.path(dataPath(sim)))),
+               finally = {sim$ageMap <- raster(raster::extent(0,49,0,49),nrow=200, ncol=200, vals=as.integer(runif(200*200)*150))
+               warning("Age map was not supplied in 'ageModule/data' folder, creating a random raster.")})
+      
+    } else {
+    
     tryCatch(sim$ageMap <- prepInputs(targetFile = asPath(file.path(dataPath(sim), "can_age04_1km.tif")),
                              destinationPath = asPath(file.path(dataPath(sim))),
                              studyArea = ifelse(suppliedElsewhere(sim$studyArea), sim$studyArea, NULL),
                              rasterToMatch = ifelse(suppliedElsewhere(sim$vegMap), sim$vegMap, NULL)), 
              finally = {sim$ageMap <- raster(raster::extent(0,49,0,49),nrow=200, ncol=200, vals=as.integer(runif(200*200)*150))
-               warning("Age map was not supplied, creating a random raster.")})
+               warning("Age map was not supplied in 'ageModule/data' folder, creating a random raster.")})
+    }
   }
    
    
   if (!suppliedElsewhere("ageMapInit",sim)){
+    
     suppliedElsewhere("ageMap",sim)
+    
     sim$ageMapInit <- sim$ageMap
   }
   
     
-  if (suppliedElsewhere("ageMap", sim)){
-    sim$flammableMap <- sim$ageMap * 0   #this, on the other hand, had better exist
+  if (all(!suppliedElsewhere("flammableMap", sim)&suppliedElsewhere("ageMap", sim))){
+    
+    sim$flammableMap <- sim$ageMap   #this, on the other hand, had better exist
     #    sim$ageMap[] <- P(sim)$initialAge ===> Not sure what this does 
     
   }
+  
   else {
+    
+    if (!suppliedElsewhere("flammableMap", sim)&!suppliedElsewhere("ageMap", sim)){
+    
     sim$flammableMap <- raster(raster::extent(0,49,0,49),nrow=200, ncol=200, vals=0)
     warning("Age map was not supplied, creating a random raster.")
+    }
   }
 
   
