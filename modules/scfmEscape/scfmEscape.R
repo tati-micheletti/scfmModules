@@ -59,54 +59,28 @@ doEvent.scfmEscape = function(sim, eventTime, eventType, debug = FALSE){
 }
 
 ### template initilization
+
 Init <- function(sim) {
  
   sim$spreadStateE <- data.table(NULL)
-  if (!is.na(P(sim)$.plotInitialTime)){
+  
+  if (!is.na(P(sim)$.plotInitialTime)){ # [ IMPROVE ] don't understand why this is here with plotInitialTime?
     sim$escapeMap = raster(sim$flammableMap)
     sim$escapeMap[] <- 0
-  }
-  return(invisible(sim))
-}
 
-ePlot <- function(sim){
-  values(sim$escapeMap) <- 0
-  values(sim$escapeMap)[sim$spreadStateE[,indices]] <- 2 #this reference method is believed to be faster
-  values(sim$escapeMap)[sim$ignitionLoci] <- 1          #mark the initials specialy
-  Plot(sim$escapeMap) 
+    }
+  
   return(invisible(sim))
-}
 
-Escape <- function(sim){
-  #browser()
-  sim$spreadStateE <- data.table(NULL) #ensure always in a determinate state
-  if (length(sim$ignitionLoci)> 0){
-  #note that ifesles won't work once these things are nonscalars.
-  p0 <- if ("scfmPars" %in% names(objs(sim)))
-               sim$scfmPars$p0
-        else
-               P(sim)$p0
-  # browser()
-  #print(paste("Year",time(sim), "loci = ", length(sim$ignitionLoci)))
-  
-  pMap <- sim$flammableMap
-  pMap <- (!pMap) * p0
-  
-  sim$spreadStateE <- SpaDES.tools::spread(landscape=sim$flammableMap,
-                                          loci=sim$ignitionLoci,
-                                          iterations=1,
-                                          spreadProb=pMap,
-                                          mask=sim$flammableMap,
-                                          directions=sim$nNbrs,
-                                          returnIndices=TRUE, 
-                                          id=TRUE)
-  }
-  return(invisible(sim))
 }
 
 .inputObjects <- function(sim){
+  
   if (!("nNbrs" %in% names(objs(sim)))){
+    
     sim$nNbrs <- 8
+    
   }
+  
   return(invisible(sim))
 }
