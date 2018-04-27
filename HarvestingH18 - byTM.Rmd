@@ -152,4 +152,7 @@ Plot(mySimOut$ageMap)
 ### ADDED THE TAG: [ IMPROVE ] on lines that can be improved later on to be more modular and aviod errors
  When ageMap is better: substitute `sim$flammableMap <- sim$vegMap` to `sim$ageMap` (think I have done it already. Doesn't matter as it is just the template anyway)
 
-[ IMPROVE ] Change colors from MAPS: Habitat Classification, Vegetation Map and Strata for Harvesting? Steve
+[ IMPROVE ] Change colors from MAPS: Habitat Classification, Vegetation Map (not needed. Not plotting!) and Strata for Harvesting? Steve
+[ IMPROVE ] Let people chose the district they want from Global. Create a function to bring up the table for that Steve
+
+
