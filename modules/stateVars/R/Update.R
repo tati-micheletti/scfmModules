@@ -28,11 +28,22 @@ Update <- function(sim){
     
     # UPDTAE HABITAT MAP
     
-    browser()
-    #  raster::values(sim$habitatMap)[sim$cutCells] <- 0
+        # Cells cut from deciduous become 12 in habitat 
+    DEC <- which(sim$habitatMap[]==4|sim$habitatMap[]==5)
+    cutDEC <- sim$cutCells[sim$cutCells %in% DEC]
+    sim$habitatMap[cutDEC] <- 12
+       
+        # Cells between 31 -  90 AND class 12 become 4 
+    yDEC <- which(sim$habitatMap[]==12&(sim$ageMap[]>30&sim$ageMap[]<91))
+    sim$habitatMap[yDEC] <- 4
     
+        # Cells older than 90 AND class 4 become class 5
+    oDEC <- which(sim$habitatMap[]==4&sim$ageMap[]>90)
+    sim$habitatMap[oDEC] <- 5
+
   }
   
+  # ADD TO OUTPUTS IF I CREATE NEW STUFF IN SIM
   
   sim <- heightFromAge(sim)
   
