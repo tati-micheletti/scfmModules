@@ -14,7 +14,7 @@ defineModule(sim, list(
   documentation = list("README.txt", "scfmRegime.Rmd"),
   reqdPkgs=list("sp", "rgdal"),
   parameters=rbind(
-    defineParameter(".useCache", "logical", FALSE, NA, NA, "cache or not"),
+    defineParameter(".useCache", "logical", TRUE, NA, NA, "cache or not"),
     defineParameter("fireCause", "character", c("L"), NA_character_, NA_character_,  "subset of c(H,H-PB,L,Re,U)"),
     defineParameter("fireEpoch", "numeric", c(1961,1990), NA_integer_, NA_integer_, "start and end of normal period")
   ),
