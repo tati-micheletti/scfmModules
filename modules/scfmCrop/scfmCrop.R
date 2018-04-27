@@ -114,6 +114,7 @@ Init <- function(sim) {
     c34 <- which(sim$ageMap[]==34)
     c35 <- which(sim$ageMap[]==35)
     
+    set.seed(2016)
    gausMapBase <- gaussMap(sim$ageMap, scale = 8, var = 120, method = "RMexp")
    
     sim$ageMap <- Cache(raster::mask, gausMapBase, sim$studyArea)
