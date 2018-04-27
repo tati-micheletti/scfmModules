@@ -18,7 +18,8 @@ defineModule(sim, list(
     defineParameter("startTime", "numeric", 0, NA, NA, desc="Simulation time at which to initiate burning"),
     defineParameter(".plotInitialTime", "numeric", NA, NA, NA, "Time of first Plot event, or NA"),
     defineParameter(".statsInitialTime", "numeric", 0, NA, NA, "Time of first Plot event, or NA"),
-    defineParameter(".plotInterval", "numeric", 1, NA, NA, "Timeunits beteen plot events")
+    defineParameter(".plotInterval", "numeric", 1, NA, NA, "Timeunits beteen plot events"),
+    defineParameter(".useCache", "logical", TRUE, NA, NA, "Caching the module")
   ),
   inputObjects = 
     bind_rows(
