@@ -16,12 +16,14 @@ defineModule(sim, list(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
     defineParameter("minVolume", "numeric", 50, 0, NA, "Minimum volume in m^3/ha for eligibility to harvest"),
     defineParameter("minAge", "numeric", 40, 0, NA, "Minimum age to harvest"),
-    defineParameter("startTime", "numeric", 0, 0, NA, "Start time"),
+    defineParameter("startTime", "numeric", 1, 0, NA, "Start time"),  # IF BREAKS, BACK TO 0 and change birds
     defineParameter("returnInterval", "numeric", 1, 0, 0, "waddya think?"),
     defineParameter("minBlockSize", "numeric", 20, 1, NA, "minimum block size (ha)"),
     defineParameter("greenUpPeriod", "numeric", 30, 0, 30, "For how many years do cut blocks affect adjacent areas?"),
     defineParameter(".plotInitialTime", "numeric", 0, NA, NA, "This describes the simulation time at which the first plot event should occur"),
-    defineParameter(".plotInterval", "numeric", 1, NA, NA, "This describes the simulation time at which the first plot event should occur")
+    defineParameter(".plotInterval", "numeric", 1, NA, NA, "This describes the simulation time at which the first plot event should occur"),
+    defineParameter(".plotInterval", "numeric", 1, NA, NA, "This describes the simulation time at which the first plot event should occur"),
+    defineParameter(".useCache", "logical", TRUE, NA, NA, "Caching the module")
   ),
   inputObjects = bind_rows(
     #expectsInput("objectName", "objectClass", "input object description", sourceURL, ...),
