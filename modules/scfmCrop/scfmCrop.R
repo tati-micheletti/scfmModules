@@ -104,15 +104,11 @@ Init <- function(sim) {
   
   if (!suppliedElsewhere("ageMap",sim)){
 
-    # Mannually create an ageMap # DEFINITELY NEEDS IMPROVES!!!
-    
+    # Mannually create an ageMap # [ IMPROVE ] Exclude to NA areas from vegMap that are not forests.
+     
     vecReclass <- c(15, 2, 34, 35)
     sim$ageMap <- sim$vegMap
-    # sim$ageMap[!(sim$ageMap == vecReclass)] <- 999
-    # sim$ageMap[sim$ageMap==15] <- 35
-    # sim$ageMap[sim$ageMap==2] <- 95
-    # sim$ageMap[sim$ageMap==34|sim$ageMap==35] <- 10
-    
+
     c15 <- which(sim$ageMap[]==15)
     c2 <- which(sim$ageMap[]==2)
     c34 <- which(sim$ageMap[]==34)
@@ -120,24 +116,6 @@ Init <- function(sim) {
     
    gausMapBase <- gaussMap(sim$ageMap, scale = 8, var = 120, method = "RMexp")
    
-    # seqNonNa <- which(!is.na(sim$ageMap[]))
-    # totalNonNa <-length(seqNonNa)
-    # adjMatrix <- matrix(c(rep(1, 47), 0, rep(1, 47)), ncol = 95)
-    # cells <- seq(1, totalNonNa, by = 95)
-    # 
-    # toNeigh <- seqNonNa[cells]
-    # 
-    # cellsToChange <- data.table::data.table(adjacent(sim$ageMap, 
-    #                                             cells = toNeigh,
-    #                                             directions = adjMatrix, 
-    #                                             include = FALSE, 
-    #                                             pairs = TRUE, 
-    #                                             id = TRUE))
-    # 
-    # groups <- cellsToChange[, .(.N), by = .(from)]
-    # reClas <- rep(round(runif(n = length(cells), min = 30, max = 90)), each = groups$N[1])
-    # cellsToChange$reClas <- reClas
-    # sim$ageMap[cellsToChange$to] <- cellsToChange$reClas
     sim$ageMap <- Cache(raster::mask, gausMapBase, sim$studyArea)
     sim$ageMap[c15] <- 15
     sim$ageMap[c2] <- 2
