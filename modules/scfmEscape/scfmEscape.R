@@ -21,7 +21,8 @@ defineModule(sim, list(
     defineParameter("startTime", "numeric", 0, NA, NA, desc="Simulation time to start starting fires"),
     defineParameter(".plotInitialTime", "numeric", NA, NA, NA, "This describes the simulation time at which the first plot event should occur"),
     defineParameter(".plotInterval", "numeric", 1, NA, NA, "interval between plot events"),
-    defineParameter("returnInterval", "numeric", 1, NA, NA, "This specifies the time interval between Escape events")
+    defineParameter("returnInterval", "numeric", 1, NA, NA, "This specifies the time interval between Escape events"),
+    defineParameter(".useCache", "logical", TRUE, NA, NA, "Caching the module")
   ),
   inputObjects = bind_rows(
     expectsInput(objectName = "scfmPars", objectClass = "list", desc = "unified parameter list", sourceURL = NA),
