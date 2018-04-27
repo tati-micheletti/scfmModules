@@ -44,7 +44,7 @@ doEvent.ageModule = function(sim, eventTime, eventType, debug = FALSE) {
       sim <- scheduleEvent(sim, time(sim) + P(sim)$returnInterval, "ageModule", "age")
     },
     plot = {
-      Plot(sim$ageMap, legendRange=c(0,P(sim)$maxAge))
+      Plot(sim$ageMap, legendRange=c(0,P(sim)$maxAge), title = "Age Map")
       sim <- scheduleEvent(sim, time(sim) + P(sim)$.plotInterval,"ageModule", "plot")
     },
     warning(paste("Undefined event type: '", events(sim)[1, "eventType", with = FALSE],
@@ -57,6 +57,7 @@ Init <- function(sim) {
   
 # we will use our colour choices, not whatever may have come with the loaded map.
   
+  sim$ageMap[] <- round(sim$ageMap[], 0)
   cols <- length(which(!is.na(unique(getValues(sim$ageMap)))))
   sim$ageMap <- setColors(sim$ageMap,n=cols,colorRampPalette(c("LightGreen", "DarkGreen"))(cols))
   
