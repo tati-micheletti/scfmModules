@@ -47,6 +47,7 @@ defineModule(sim,  list(
 doEvent.harvest = function(sim, eventTime, eventType) {
   switch(eventType,
      init = {
+       
       sim <- Init(sim)
       sim <- scheduleEvent(sim, P(sim)$startTime,"harvest","harvest")
       sim <- scheduleEvent(sim, P(sim)$.plotInitialTime, "harvest", "plot")
@@ -66,17 +67,14 @@ doEvent.harvest = function(sim, eventTime, eventType) {
   return(invisible(sim))
 }
 
-
-
 Init <- function(sim) {
 
-  sim$harvestStats<-data.frame(rep(list(numeric(0)),length(sim$yieldTables[[1]]))) #again, use the 1st and only region
+  sim$harvestStats <- data.frame(rep(list(numeric(0)),length(sim$yieldTables[[1]]))) #again, use the 1st and only region
   
   #sim$disturbanceMap<-raster(sim$strataMap) * 0 
   #setColors(sim$disturbanceMap, n=3) <- c("white", "blue","red")
-  
-  
-  sim$harvestStateMap<-raster::raster(sim$strataMap) 
+  if(!suppliedElsewhere("strataMap", sim)){stop("No strata map provided. This would normally come from module 'vegMapToStrataMap")}
+  sim$harvestStateMap <- raster::raster(sim$strataMap)
   sim$harvestStateMap[] <- sim$strataMap[]*0
   setColors(sim$harvestStateMap, n=10) <- c("white","black")
   
@@ -88,98 +86,9 @@ Init <- function(sim) {
   return(invisible(sim))
 }
 
-
-updateState <- function(sim){ #calcuate merchantable volume by strata
+.inputObjects <- function(sim){
   
- # browser()
-  sim$cutCells <- numeric(0)
-  sim$volMap[] <- sim$volMap[]*0
-  ytList <- sim$yieldTables[[1]]
-  #age the previous cuts
-  idx <- which(sim$harvestStateMap[]>0)
-  ages <- sim$harvestStateMap[idx] - 1
-  sim$harvestStateMap[idx] <- ages
-  
-  for (i in 1:length(ytList)){
-    idx <- which(sim$strataMap[] == i)
-    isOK <- which(sim$harvestStateMap[idx] == 0)
-    idx <- idx[isOK]
-    ageVec <- sim$ageMap[idx]
-    isOK <- which(ageVec >= P(sim)$minAge)
-    ageVec <- ageVec[isOK]
-    idx <- idx[isOK]
-    #right truncate ageVec to yieldTableMaxAge
-    maxAge <- dim(ytList[[i]])[1]
-    ageVec <- ifelse(ageVec > maxAge, maxAge, ageVec)
-    volVec <- ytList[[i]][ageVec,3]
-    isOK <- which(volVec >= P(sim)$minVolume)
-    volVec <- volVec[isOK]
-    idx <- idx[isOK]
-    sim$volMap[idx] <- volVec
-    
-    ages <- sim$ageMap[idx]
-    if (length(ages) > 0)
-      x <- order(ages, decreasing=TRUE)
-    else
-      x <- integer(0)
-    idx <-idx[x]     #put in oldest first
-    sim$merchCells[[i]] <- idx
+  if(!suppliedElsewhere("strataMap", sim)){
+    stop("No strata map provided. This would normally come from module 'vegMapToStrataMap") # [ IMPROVE ] add a strataMap for the module to work alone
   }
-  sim$cutCellIndex <- rep(1,length(ytList))
-  return(invisible(sim))  
 }
-
-testBlock <-function(cells, strata){
-  
-  
-  
-}
-
-Harvest <- function(sim){
-  sim <- updateState(sim)
-  #browser()
-  aac <- unlist(sim$annualCut) #level for region missing
-  vol <- rep(0, length(aac))
-  maxCells <- unlist(lapply(sim$merchCells,length))
-  nStrata <- length(maxCells)
-  while (any(vol < aac & sim$cutCellIndex <= maxCells)){
-    for (i in 1:nStrata){
-      idx <- sim$cutCellIndex[i]
-      if (vol[i] < aac[i] && idx <= maxCells[i]){ #need more and there is potentially some
-         while (sim$harvestStateMap[sim$merchCells[[i]][idx]] != 0){
-           idx = idx + 1
-           if (idx > maxCells[i])
-             break
-         }
-         if (idx <= maxCells[i]){ #could we find a cell to cut? 
-           #browser()
-           cellX <- sim$merchCells[[i]][idx]
-           #for a simple block simulator, get adjacent cells
-           adjX  <- adjacent(sim$volMap, cellX, directions=8, pairs=FALSE, include=TRUE)
-           #select those in same strata, that are merch and not blocked. 
-           isOK <- which(sim$strataMap[adjX] == i & sim$volMap[adjX] > 0 & sim$harvestStateMap[adjX] == 0)
-           adjX <- adjX[isOK]
-           #if the block is big enough, cut them all and mark them
-           if (length(adjX) * sim$landscapeAttr$cellSize >= P(sim)$minBlockSize){
-             vol[i] <- vol[i] +  sum(sim$volMap[adjX]) * sim$landscapeAttr$cellSize #then get its Volume/ha
-             sim$cutCells <- c(sim$cutCells, adjX)
-             #should mark all cells adjacent also. 
-             adjX2 <- adjacent(sim$volMap, adjX, directions=4, pairs=FALSE, include=TRUE)
-             sim$harvestStateMap[adjX2] <- P(sim)$greenUpPeriod #mark it cut
-           }
-         }
-        sim$cutCellIndex[i] <- idx + 1 # this now does not ensure that something is cut every step.
-      }
-    }
-  }
-  #sim<-sequentialCut(sim)
-  #sim<-sequenceOldest(sim)
-  #sim<-blockOldest(sim)
-  #browser()
-  sim$harvestStats[nrow(sim$harvestStats)+1,] <- vol #area, vol, vol/area; where to find these^
-  
-  return(invisible(sim))
-  
-}
-
-
