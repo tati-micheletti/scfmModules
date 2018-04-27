@@ -30,7 +30,9 @@ doEvent.scfmDriver = function(sim, eventTime, eventType, debug=FALSE) {
   switch(
     eventType,
     init = {
+      
       sim <- Init(sim)
+    
     },
     warning(paste("Undefined event type: '", events(sim)[1, "eventType", with=FALSE],
                     "' in module '", events(sim)[1, "moduleName", with=FALSE], "'", sep=""))
@@ -56,6 +58,7 @@ escapeProbDelta<-function(p0,w,hatPE){
 }
 
 Init = function(sim) {
+
   #this table contains calibration data for several landscape sizes
   #and several min fire sizes (1 or 2 cells), organised by collumn.
   #The data were made by Steve Cumming in June 2013 for a whole other purpose.
