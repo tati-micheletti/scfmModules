@@ -26,3 +26,5 @@ NFDB_point
 *.rda
 backpack.db
 .Rproj.user
+*.grd
+*.gri
