@@ -1,6 +1,8 @@
 # Covariates Table
 # from Vernier et al., 2008
 
+createParams <- function(){ # [ IMPROVE ] BY ADDING THE WHOLE TABLE OF COVARIATES FROM VERNIER AND PASSING SPECIES ARGUMENT
+
 covars <- data.table::data.table(Species = c("COWA", "MOWA", "RBNU", "TEWA", "YWAR"), 
                                  Constant = c(-3.012, -3.271, -2.549, 1.138, -4.190),
                                  L_CUT = c(-0.526, 0.521, -2.679, 0.069, 0.357),
@@ -15,3 +17,9 @@ covars <- data.table::data.table(Species = c("COWA", "MOWA", "RBNU", "TEWA", "YW
                                  N_LATE = c(-1.119, 1.085, 1.140, -1.330, 1.379),
                                  N_SB = c(0.369, -0.351, 0.210, 0.140, -0.674),
                                  N_RICH = c(0.058, 0.163, 0.164, -0.131, 0.067))
+
+message("Loading covariate table for COWA, MOWA, RBNU, TEWA, YWAR. [see Vernier et al. 2008, Appendix 1]")
+
+return(covars)
+
+}
