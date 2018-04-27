@@ -22,23 +22,20 @@ defineModule(sim, list(
     defineParameter(".useCache", "logical", TRUE, NA, NA, desc="Use cache or not.")
     ),
   inputObjects=bind_rows(
-    expectsInput(objectName = "studyArea", objectClass = "SpatialPolygons", desc = "study area"),
+    expectsInput(objectName = "studyArea", objectClass = "SpatialPolygons", desc = "study area", sourceURL = sim$url.studyArea),
+    expectsInput(objectName = "vegMap", objectClass = "RasterLayer", desc = "vegetation map", sourceURL = sim$url.vegMap),
+    expectsInput(objectName = "ageMap", objectClass = "RasterLayer", desc = "age map"),
     expectsInput(objectName = "vegMapInit", objectClass = "RasterLayer", desc = "national landcover map LCC05"),
     expectsInput(objectName = "ageMapInit", objectClass ="RasterLayer", desc = "national 1km2 ageMap"),
     expectsInput(objectName = "url.studyArea", objectClass = "character", desc = NA, sourceURL = NA),
     expectsInput(objectName = "url.vegMap", objectClass = "character", desc = NA, sourceURL = NA),
-    expectsInput(objectName = "tempPath.studyArea", objectClass = "character", desc = "Temporary path to downloaded study area", sourceURL = NA),
-    expectsInput(objectName = "tempPath.vegMap", objectClass = "character", desc = "Temporary path to downloaded vegetation map", sourceURL = NA),
-    expectsInput(objectName = "numTypes", objectClass = "numeric", desc = "Number of strata", sourceURL = NA)
+    expectsInput(objectName = "numTypes", objectClass = "numeric", desc = "Number of strata", sourceURL = NA),
+    expectsInput(objectName = "areaInHa", objectClass = "numeric", desc = "Resolution for raster pixels in hactares", sourceURL = NA),
+    expectsInput(objectName = "templateRaster", objectClass = "RasterLayer", desc = "Template raster", sourceURL = sim$url.vegMap),
+    expectsInput(objectName = "flammableMap", objectClass = "RasterLayer", desc = "flammable Map raster", sourceURL = NA)
     
   ),
   outputObjects=bind_rows(
-    createsOutput(objectName = "vegMap", objectClass = "RasterLayer", desc = ""),
-    createsOutput(objectName = "ageMap", objectClass = "RasterLayer", desc = ""),
-    createsOutput(objectName = "studyArea", objectClass = "shapefile", desc = ""),
-    createsOutput(objectName = "templateRaster", objectClass = "RasterLayer", desc = ""),
-    createsOutput(objectName = "strataMap", objectClass = "shapefile", desc = "Number of strata"),
-    createsOutput(objectName = "flammableMap", objectClass = "RasterLayer", desc = "")
   )
 ))
 
@@ -56,76 +53,44 @@ doEvent.scfmCrop = function(sim, eventTime, eventType, debug=FALSE) {
 
 
 Init <- function(sim) {
-
- #  vegProjection <- crs(sim$vegMapInit)
- #  
- #  if (is.na(crs(sim$studyArea)))            #in case it was sampled from the vegmap.
- #    crs(sim$studyArea) <- vegProjection
- #  
- #  simProjection <- crs(sim$studyArea)         #this would probably be set to be the same as the veg map at an earlier stage.
- #  
- #  #if(ncell(sim$vegMap)>5e5) beginCluster(min(parallel::detectCores(),6))
- #  
- #  #Project the study area into each input raster, then crop and mask; 
- #  #Then project result back into the sim projection.
- #  #browser()
- #  studyAreaTmp <- spTransform(sim$studyArea, CRSobj = vegProjection)
- #  sim$vegMap <-  crop(sim$vegMapInit, studyAreaTmp)
- #  crs(sim$vegMap) <- vegProjection
- #  sim$vegMap <- mask(sim$vegMap, studyAreaTmp) #É
- #  #sim$vegMap <- projectRaster(sim$vegMap, crs=simProjection, method="ngb", to=sim$vegMapInit)
- #  sim$Mask <- sim$vegMap
- #  sim$Mask[] <- ifelse(is.na(sim$vegMap[]), NA, 1)
- #  
- #  tmp <- getColors(sim$vegMapInit)[[1]]        # mask removes colors!
- #  setColors(sim$vegMap, n=length(tmp)) <- tmp  # so put them back.
- #  
- #  ageProjection <- crs(sim$ageMapInit)
- #  studyAreaTmp <- spTransform(sim$studyArea, CRSobj =ageProjection)
- #  sim$ageMap <-  crop(sim$ageMapInit, studyAreaTmp)
- # # crs(sim$ageMap) <- ageProjection
- #  sim$ageMap <- mask(sim$ageMap,studyAreaTmp)
- #  sim$ageMap <- projectRaster(sim$ageMap,to=sim$vegMap,method="ngb")
- #  
-  #endCluster()
   
   if(sum(raster::getValues(sim$ageMap), na.rm = TRUE)==0) stop("There are no age data provided with input age map")
   if(sum(raster::getValues(sim$vegMap), na.rm = TRUE)==0) stop("There are no vegatation data provided with input vegatation map")
   
-  return(invisible(sim))
+   return(invisible(sim))
 }
 
 .inputObjects <- function(sim){
   
+  if(!suppliedElsewhere("templateRaster", sim)){
   sim$templateRaster <- Cache(prepInputs, url = sim$url.vegMap, # [ IMPROVE ] Add tryCatch() and return warning that no template could be downloaded, look for it in inputs, it needs to have the specific name "templateRaster.tif"?
-                              destinationPath = asPath(sim$tempPath.vegMap))
-  
-  if(!file.exists(file.path(inputPath(sim), "studyArea.shp"))){
-    sim$studyArea <- Cache(prepInputs, url = sim$url.studyArea,
-                           destinationPath = sim$tempPath.studyArea)#,rasterToMatch = sim$templateRaster) # RasterToMatch temporarily not working
+                              destinationPath = dataPath(sim))
+  }
+  if(all(!suppliedElsewhere("studyArea", sim) & !file.exists(file.path(inputPath(sim), "studyArea.shp")))){
+    sim$studyArea <- Cache(prepInputs, url = sim$url.studyArea, destinationPath = dataPath(sim))#,rasterToMatch = sim$templateRaster) # RasterToMatch temporarily not working
     sim$studyArea <- projectInputs(studyArea, raster::crs(sim$templateRaster))
     sim$studyArea <- sim$studyArea[sim$studyArea$ECODISTRIC==339,]
     
-#    rgdal::writeOGR(obj = sim$studyArea, dsn = file.path(inputPath(sim), "studyArea.shp"), layer = "studyArea.shp", driver = "ESRI Shapefile")
+    rgdal::writeOGR(obj = sim$studyArea, dsn = file.path(dataPath(sim), "studyArea.shp"), layer = "studyArea.shp", driver = "ESRI Shapefile")
     
   } else {
-    
-    sim$studyArea <- prepInputs(targetFile = asPath(file.path(inputPath(sim), "studyArea.shp")),
+    if(!suppliedElsewhere("studyArea", sim)){
+    sim$studyArea <- Cache(prepInputs, targetFile = file.path(dataPath(sim), "studyArea.shp"),
                            destinationPath = asPath(file.path(inputPath(sim))))#rasterToMatch = sim$templateRaster)
   }
-  
+ }
   if(suppliedElsewhere("templateRaster", sim)){
   sim$vegMap <- Cache(raster::crop, sim$templateRaster, sim$studyArea) # # [ IMPROVE ] Update to postProc
   sim$vegMap <- Cache(raster::mask, sim$vegMap, sim$studyArea) # # [ IMPROVE ] Update to postProc
   } else {stop("Couldn't find template map")}
   
-  if(!suppliedElsewhere("sim$areaInHa")){
+  if(!suppliedElsewhere("areaInHa", sim)){
     sim$areaInHa <- pi
     warning("Using 'pi' hectares as raster resolution")
   }
   
   # Changing resolution
-  tempRes <- vegMap
+  tempRes <- sim$vegMap
   newRes <- sqrt(10^4 * sim$areaInHa)
   raster::res(tempRes) <- c(newRes,newRes)
   sim$vegMap <- raster::resample(templateRaster, tempRes, method="ngb") %>%
@@ -139,11 +104,47 @@ Init <- function(sim) {
   
   if (!suppliedElsewhere("ageMap",sim)){
 
-    if(file.exists(file.path(dataPath(sim), "ageMapCropped.tif"))){
-      
-      sim$ageMap <- raster::raster(file.path(dataPath(sim), "ageMapCropped.tif"))
+    # Mannually create an ageMap # DEFINITELY NEEDS IMPROVES!!!
+    
+    vecReclass <- c(15, 2, 34, 35)
+    sim$ageMap <- sim$vegMap
+    # sim$ageMap[!(sim$ageMap == vecReclass)] <- 999
+    # sim$ageMap[sim$ageMap==15] <- 35
+    # sim$ageMap[sim$ageMap==2] <- 95
+    # sim$ageMap[sim$ageMap==34|sim$ageMap==35] <- 10
+    
+    c15 <- which(sim$ageMap[]==15)
+    c2 <- which(sim$ageMap[]==2)
+    c34 <- which(sim$ageMap[]==34)
+    c35 <- which(sim$ageMap[]==35)
+    
+    seqNonNa <- which(!is.na(sim$ageMap[]))
+    totalNonNa <-length(seqNonNa)
+    adjMatrix <- matrix(c(rep(1, 47), 0, rep(1, 47)), ncol = 95)
+    cells <- seq(1, totalNonNa, by = 95)
+    
+    toNeigh <- seqNonNa[cells]
 
-    } else {
+    cellsToChange <- data.table::data.table(adjacent(sim$ageMap, 
+                                                cells = toNeigh,
+                                                directions = adjMatrix, 
+                                                include = FALSE, 
+                                                pairs = TRUE, 
+                                                id = TRUE))
+    
+    groups <- cellsToChange[, .(.N), by = .(from)]
+    reClas <- rep(round(runif(n = length(cells), min = 30, max = 90)), each = groups$N[1])
+    cellsToChange$reClas <- reClas
+    sim$ageMap[cellsToChange$to] <- cellsToChange$reClas
+    sim$ageMap <- Cache(raster::mask, sim$ageMap, sim$studyArea)
+    sim$ageMap[c15] <- 15
+    sim$ageMap[c2] <- 2
+    sim$ageMap[c34] <- 34
+    sim$ageMap[c35] <- 35
+
+  }
+  
+  # else {
       
     # ORIGINAL TRIAL
     
@@ -184,28 +185,28 @@ Init <- function(sim) {
     
     # Workaround
 
-    sim$ageMap <- raster::raster(asPath(file.path(dataPath(sim), "can_age04_1km.tif")))
-
-    cutlinePath <- file.path(inputPath(sim), "studyArea.shp")
-    
-      gdalUtils::gdalwarp(srcfile = file.path(dataPath(sim), "can_age04_1km.tif"), # Raster file path
-               dstfile = file.path(dataPath(sim), "ageMapCropped.tif"), # Cropped raster file name
-               overwrite = TRUE, # If you alreday have a raster with the same name and want to overwrite it
-               cutline = cutlinePath, # Shapefile path to use for masking
-               dstalpha = TRUE, # Creates an output alpha band to identify nodata (unset/transparent) pixels
-               s_srs= as.character(crs(sim$ageMap)), #Projection from the source raster file
-               t_srs= as.character(crs(sim$vegMap)), # Projection for the cropped file, it is possible to change projection here
-               multi = TRUE, # Use multithreaded warping implementation.
-               of = "GTiff", # Select the output format
-               crop_to_cutline = TRUE, # Crop the raster to the shapefile
-               tr = res(sim$vegMap)) # Raster resolution, not sure it needs to be the same from original raster
-      
-      sim$ageMap <- raster::raster(asPath(file.path(dataPath(sim), "ageMapCropped.tif")))
+    # sim$ageMap <- raster::raster(file.path(dataPath(sim), "can_age04_1km.tif"))
+    # 
+    # cutlinePath <- file.path(inputPath(sim), "studyArea.shp")
+    # 
+    #   gdalUtils::gdalwarp(srcfile = file.path(dataPath(sim), "can_age04_1km.tif"), # Raster file path
+    #            dstfile = file.path(dataPath(sim), "ageMapCropped.tif"), # Cropped raster file name
+    #            overwrite = TRUE, # If you alreday have a raster with the same name and want to overwrite it
+    #            cutline = cutlinePath, # Shapefile path to use for masking
+    #            dstalpha = TRUE, # Creates an output alpha band to identify nodata (unset/transparent) pixels
+    #            s_srs= as.character(crs(sim$ageMap)), #Projection from the source raster file
+    #            t_srs= as.character(crs(sim$vegMap)), # Projection for the cropped file, it is possible to change projection here
+    #            multi = TRUE, # Use multithreaded warping implementation.
+    #            of = "GTiff", # Select the output format
+    #            crop_to_cutline = TRUE, # Crop the raster to the shapefile
+    #            tr = res(sim$vegMap)) # Raster resolution, not sure it needs to be the same from original raster
+    #   
+    #   sim$ageMap <- raster::raster(file.path(dataPath(sim), "ageMapCropped.tif"))
     
     #=====================================================
-      }
-  
-  }
+  #     }
+  # 
+  # }
   
   if (!suppliedElsewhere("ageMapInit",sim)){
     suppliedElsewhere("ageMap",sim)
