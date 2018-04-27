@@ -78,8 +78,8 @@ Init = function(sim) {
   sim$flammableMap <- raster::reclassify(x = sim$flammableMap, rcl = reclassNonFlamm, 
                                          include.lowest = TRUE, right = FALSE)
     sim$flammableMap <- setColors(sim$flammableMap,n=2,colorRampPalette(c("skyblue", "red"))(2))
-
-  #  sim$flammableMap <- raster::mask(sim$flammableMap, sim$studyArea)
+    
+    #  sim$flammableMap <- raster::mask(sim$flammableMap, sim$studyArea)
   
   # if (suppliedElsewhere("Mask",sim)){
   #   if (class(sim$Mask) == "RasterLayer"&
