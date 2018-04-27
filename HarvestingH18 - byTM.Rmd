@@ -117,8 +117,8 @@ modules <- list("scfmCrop", "scfmLandcoverInit",
   "scfmRegime", "scfmDriver", "scfmIgnition", "scfmEscape", "scfmSpread", 
   "ageModule", "mapBurns",
   "loadYieldTables", "Hanzlik", 
-  "strataMapFromVegMap", "harvest",  "stateVars")
-
+  "strataMapFromVegMap", "scfmHarvest", "stateVars")
+# 
 objects <- list(
                 scfmPars=list(pSpread=0.225,
                   p0=0.115,
@@ -147,5 +147,9 @@ Plot(mySimOut$harvestStateMap)
 Plot(mySimOut$disturbanceMap)
 Plot(mySimOut$ageMap)
 
-# ADDED THE TAG: [ IMPROVE ] on lines that can be improved later on to be more modular and aviod errors
 ```
+
+### ADDED THE TAG: [ IMPROVE ] on lines that can be improved later on to be more modular and aviod errors
+ When ageMap is better: substitute `sim$flammableMap <- sim$vegMap` to `sim$ageMap` (think I have done it already. Doesn't matter as it is just the template anyway)
+
+[ IMPROVE ] Change colors from MAPS: Habitat Classification, Vegetation Map and Strata for Harvesting? Steve
