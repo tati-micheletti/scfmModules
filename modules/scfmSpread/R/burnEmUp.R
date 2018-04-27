@@ -18,9 +18,6 @@ burnEmUp <- function(sim){   #name is a homage to Walters and Hillborne
   else
     ncell(sim$burnMap)*0.9
   
-  browser() # FIX BURN / FIRE MAP!!! It can't burn outside of the cropped/masked area...
-  
-  values(sim$burnMap) <- 0
   sim$spreadState <- data.table(NULL) #ensure always in a determinate state
   useSSE <- "spreadStateE" %in% names(objs(sim)) &&  nrow(sim$spreadStateE) > 0
   if (useSSE || ("ignitionLoci" %in% names(objs(sim)) && length(sim$ignitionLoci) > 0)){
@@ -36,12 +33,13 @@ burnEmUp <- function(sim){   #name is a homage to Walters and Hillborne
                                             maxSize = maxSize,
                                             returnIndices = TRUE,
                                             id = TRUE)
+
     
-    values(sim$burnMap)[sim$spreadState[,indices]] <- 3   
-    if ("spreadStateE" %in% names(objs(sim))){
+    values(sim$burnMap)[sim$spreadState[,indices]] <- 3 
+    if (suppliedElsewhere("spreadStateE", sim)){
       values(sim$burnMap)[sim$spreadStateE[,indices]] <- 2 #mark the escapes speciaxly
     }
-    if ("ignitionLoci" %in% names(objs(sim))){
+    if (suppliedElsewhere("ignitionLoci", sim)){
       values(sim$burnMap)[sim$ignitionLoci] <- 1           #mark the initials specialy
     }
   }
