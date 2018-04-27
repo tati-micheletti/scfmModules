@@ -1,6 +1,6 @@
 # Model
 
-lp ~ B0 + B1 * L_CUT +  # Station in recently harvested cutblock (≤30 years) proportion ==> HarvestStateMap > 0
+lp ~ B0 +                  B1 * L_CUT +  # Station in recently harvested cutblock (≤30 years) proportion ==> HarvestStateMap > 0
                            B2 * L_YDEC + # Station in young deciduous forest (31–90 years) proportion ==> Age map + LCC05
                            B3 * L_ODEC + # Station in old deciduous forest (>90 years) proportion ==> Age map = LCC05
                            B4 * L_MIX + # Station in mixed deciduous/conifer forest (>30 years) proportion ==> Age map + LCC05
@@ -20,6 +20,27 @@ p <- exp(lp)/1 + exp(lp)
 
 # FOR THE NEIGHBORHOOD
 ac <- adjacent(habitatClassMap, distance = 5, directions = 8, include = FALSE, pairs = TRUE)
+
+id <- c(1:length(sim$vegMap[]))
+id <- c(1:length(sim$ageMap[]))
+
+distMatrix <- matrix(c(rep(1, 12), 0, rep(1,12)), ncol = 5)
+cellsVeg <- data.table::data.table(adjacent(sim$vegMap, 
+                                      cells = c(1:ncell(sim$vegMap)), 
+                                      directions = distMatrix, 
+                                      include = FALSE, 
+                                      pairs = TRUE, 
+                                      id = TRUE))
+
+cellsAge <- data.table::data.table(adjacent(sim$ageMap, 
+                                              cells = c(1:ncell(sim$ageMap)), 
+                                              directions = distMatrix, 
+                                              include = FALSE, 
+                                              pairs = TRUE, 
+                                              id = TRUE))
+
+all(cellsVeg$id %in% sim$ageMap[])
+
 #ac is the index and 24 habitat class in the neighborhood 
 actab <- tabulate(ac[,2]/24)
 N_LATE <- sum(ageMap[ac[,1]]>90)/24
@@ -47,7 +68,7 @@ Modules :
   # Need to upload data to folders that don't have it: ie. NFDB_point on scfmRegime [ OK ]
   # Make resolution of pi ha (3.14ha) ==> res = sqrt(10^4 * pi) [ OK ]
   # Alter scfmCrop to make the cropping using prepInputs [ OK ]
-  # Then check if all the others work [ Waiting for propInputs() to work again]
+  # Then check if all the others work [ Waiting for propInputs() to work again] [ OK ]
   # Then make vegMapToStrataMap (should convert vegMap to the strataMap)
   # Then make the habitatClassMap
   # Finish with the birdsAlberta module:
@@ -84,13 +105,13 @@ vegMap <- raster::mask(vegMap, studyArea)
 # library(SpaDES)
 # library(raster)
 
-# 1. Aw     Pure Aspen _Populus tremuloides_ 
+# 1. Aw     Pure Aspen _Populus tremuloides_
 # 2. Aw/Sw  Aspen with a white spruce _Picea glauca_ understory (never used)
 # 3. AwSw   20-50% Sw (this would be based on AVI or Phase 3 inventory calls)
 # 4. SwAw   50-80% Sw (as above)
 # 5. Sw    "pure" white spruce, >80% Sw.
 # 6. Sb     Black Spruce _Picea mariana_
-# 7. Pj     Jack Pine _Pinus banksiana_ 
+# 7. Pj     Jack Pine _Pinus banksiana_
 # 8. AwPj   Aspen Pine mixtures (20-50% pine, I think)
 
 # 1. Pure deciduous
@@ -177,6 +198,7 @@ vegMap <- raster::mask(vegMap, studyArea)
 # 
 # # FOR IT TO WORK, I HAVE TO IDENTIFY WHEN THERE IS ONLY ONE VALUE ON THE STRATAMAP AND REDO IT!
 
-
-# LOAD MAPS TO TEST
-vegMap <- raster::raster(file.path(getwd(),"modules","")
+convertTable <- data.table::data.table(read.csv(file.path(getwd(),"modules/vegMapToStrataMap/data/ConvertTable.csv")))
+closed <- ct[grepl(pattern = "closed", Description),Class]
+medium <- ct[grepl(pattern = "medium", Description),Class]
+low <- ct[grepl(pattern = c("\\ow"), Description),Class]
