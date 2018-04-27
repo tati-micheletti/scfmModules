@@ -68,8 +68,8 @@ Init = function(sim) {
   # flammableTable <- cbind(oldClass, newClass)
   # sim$flammableMap <-raster::ratify(raster::reclassify(sim$flammableMap, flammableTable),count=TRUE)
   
-  reclassNonFlamm <- matrix(c(1, 36, 0, 36, 40, 1), byrow = TRUE, ncol = 3) 
-  # Categories of nonto talk to Steve: 
+  reclassNonFlamm <- matrix(c(1, 36, 0, 36, 40, 1), byrow = TRUE, ncol = 3)    # Categories of nonFlam talk to Steve: 
+
   # 36 - Urban and Built-up
   # 37 - Water bodies
   # 38 - Mixes of water and land
