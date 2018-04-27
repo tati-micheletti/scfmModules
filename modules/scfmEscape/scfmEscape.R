@@ -65,7 +65,7 @@ Init <- function(sim) {
   sim$spreadStateE <- data.table(NULL)
   
   if (!is.na(P(sim)$.plotInitialTime)){ # [ IMPROVE ] don't understand why this is here with plotInitialTime?
-    sim$escapeMap = raster(sim$flammableMap)
+    sim$escapeMap <- raster(sim$flammableMap)
     sim$escapeMap[] <- 0
 
     }

@@ -44,13 +44,8 @@ doEvent.scfmLandcoverInit = function(sim, eventTime, eventType, debug=FALSE) {
     
     plot = {
       
-      browser() #Test Plot
-      
-      Plot(sim$vegMap, new=TRUE)
-      
-      breakpoints <- c(0,1)
-      colors <- c("skyblue","red")
-      Plot(sim$flammableMap,breaks=breakpoints,col=colors) # this is failing probably due to a bug in Plot
+      #Plot(sim$vegMap, new=TRUE, title = "Vegetation Map") # We don't need it as it doesn't change!
+      # Plot(sim$flammableMap) # this is failing probably due to a bug in Plot
                                                            # EJM is working on it 20160224
       
       sim <- scheduleEvent(sim, time(sim) + P(sim)$.plotInterval, "scfmLandcoverInit", "plot")
@@ -73,9 +68,16 @@ Init = function(sim) {
   # flammableTable <- cbind(oldClass, newClass)
   # sim$flammableMap <-raster::ratify(raster::reclassify(sim$flammableMap, flammableTable),count=TRUE)
   
-  sim$flammableMap[] <- ifelse(!is.na(sim$flammableMap[])&sim$flammableMap[] %in% P(sim)$nonFlammClasses, 1, 0)
+  reclassNonFlamm <- matrix(c(1, 36, 0, 36, 40, 1), byrow = TRUE, ncol = 3) 
+  # Categories of nonto talk to Steve: 
+  # 36 - Urban and Built-up
+  # 37 - Water bodies
+  # 38 - Mixes of water and land
+  # 39 - Snow/ ice
   
-#  sim$flammableMap <- setColors(sim$flammableMap,n=2,colorRampPalette(c("skyblue", "red"))(2))
+  sim$flammableMap <- raster::reclassify(x = sim$flammableMap, rcl = reclassNonFlamm, 
+                                         include.lowest = TRUE, right = FALSE)
+    sim$flammableMap <- setColors(sim$flammableMap,n=2,colorRampPalette(c("skyblue", "red"))(2))
 
   #  sim$flammableMap <- raster::mask(sim$flammableMap, sim$studyArea)
   

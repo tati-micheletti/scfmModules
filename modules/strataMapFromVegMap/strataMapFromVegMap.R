@@ -27,7 +27,7 @@ defineModule(sim, list(
   outputObjects = bind_rows(
     #createsOutput("objectName", "objectClass", "output object description", ...),
     createsOutput(objectName = "strataMap", objectClass = "RasterLayer", desc = "Harvest strata map"),
-    createsOutput(objectName = "vernMap", objectClass = "RasterLayer", desc = "Habitat map based on Vernier et. al 2008 [Table 1]")
+    createsOutput(objectName = "habitatMap", objectClass = "RasterLayer", desc = "Habitat map based on Vernier et. al 2008 [Table 1]")
   )
 ))
 
@@ -38,23 +38,18 @@ doEvent.strataMapFromVegMap = function(sim, eventTime, eventType) {
   switch(
     eventType,
     init = {
-     
+      
       sim <- Init(sim)
+      sim <- Stratify(sim)
 
       # schedule future event(s)
-      sim <- scheduleEvent(sim, P(sim)$.initialTime, "strataMapFromVegMap", "stratify")
       sim <- scheduleEvent(sim, P(sim)$.plotInitialTime, "strataMapFromVegMap", "plot")
     },
     
-    stratify = {
-      
-      sim <- Stratify(sim)
-      
-    },
     plot = {
       
       Plot(sim$strataMap, title = "Strata for Harvesting")
-      Plot(sim$vernMap, title = "Habitat Classification")
+      Plot(sim$habitatMap, title = "Habitat Classification")
       
     },
     

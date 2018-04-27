@@ -1,6 +1,5 @@
 burnEmUp <- function(sim){   #name is a homage to Walters and Hillborne
   
-  #browser()
   if (is.na(P(sim)$pOverRide)){
     pSpread <- if ("scfmPars" %in% names(objs(sim)))
       sim$scfmPars$pSpread
@@ -18,6 +17,8 @@ burnEmUp <- function(sim){   #name is a homage to Walters and Hillborne
     sim$scfmPars$maxBurnCells
   else
     ncell(sim$burnMap)*0.9
+  
+  browser() # FIX BURN / FIRE MAP!!! It can't burn outside of the cropped/masked area...
   
   values(sim$burnMap) <- 0
   sim$spreadState <- data.table(NULL) #ensure always in a determinate state

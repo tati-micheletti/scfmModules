@@ -73,7 +73,8 @@ Init <- function(sim) {
     
   }
   
-  sim$burnMap <- sim$flammableMap * 0  # 0 * NA = NA
+  sim$burnMap <- sim$flammableMap
+  sim$burnMap[] <- sim$burnMap[]*0
   
   sim$spreadState <- data.table(NULL)
   setColors(sim$burnMap,n=4) <- c("grey95", "green", "yellow", "red")

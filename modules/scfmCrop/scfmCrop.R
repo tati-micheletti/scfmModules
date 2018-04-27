@@ -118,30 +118,32 @@ Init <- function(sim) {
     c34 <- which(sim$ageMap[]==34)
     c35 <- which(sim$ageMap[]==35)
     
-    seqNonNa <- which(!is.na(sim$ageMap[]))
-    totalNonNa <-length(seqNonNa)
-    adjMatrix <- matrix(c(rep(1, 47), 0, rep(1, 47)), ncol = 95)
-    cells <- seq(1, totalNonNa, by = 95)
-    
-    toNeigh <- seqNonNa[cells]
-
-    cellsToChange <- data.table::data.table(adjacent(sim$ageMap, 
-                                                cells = toNeigh,
-                                                directions = adjMatrix, 
-                                                include = FALSE, 
-                                                pairs = TRUE, 
-                                                id = TRUE))
-    
-    groups <- cellsToChange[, .(.N), by = .(from)]
-    reClas <- rep(round(runif(n = length(cells), min = 30, max = 90)), each = groups$N[1])
-    cellsToChange$reClas <- reClas
-    sim$ageMap[cellsToChange$to] <- cellsToChange$reClas
-    sim$ageMap <- Cache(raster::mask, sim$ageMap, sim$studyArea)
+   gausMapBase <- gaussMap(sim$ageMap, scale = 8, var = 120, method = "RMexp")
+   
+    # seqNonNa <- which(!is.na(sim$ageMap[]))
+    # totalNonNa <-length(seqNonNa)
+    # adjMatrix <- matrix(c(rep(1, 47), 0, rep(1, 47)), ncol = 95)
+    # cells <- seq(1, totalNonNa, by = 95)
+    # 
+    # toNeigh <- seqNonNa[cells]
+    # 
+    # cellsToChange <- data.table::data.table(adjacent(sim$ageMap, 
+    #                                             cells = toNeigh,
+    #                                             directions = adjMatrix, 
+    #                                             include = FALSE, 
+    #                                             pairs = TRUE, 
+    #                                             id = TRUE))
+    # 
+    # groups <- cellsToChange[, .(.N), by = .(from)]
+    # reClas <- rep(round(runif(n = length(cells), min = 30, max = 90)), each = groups$N[1])
+    # cellsToChange$reClas <- reClas
+    # sim$ageMap[cellsToChange$to] <- cellsToChange$reClas
+    sim$ageMap <- Cache(raster::mask, gausMapBase, sim$studyArea)
     sim$ageMap[c15] <- 15
     sim$ageMap[c2] <- 2
     sim$ageMap[c34] <- 34
     sim$ageMap[c35] <- 35
-
+    
   }
   
   # else {
@@ -213,16 +215,16 @@ Init <- function(sim) {
     sim$ageMapInit <- sim$ageMap
   } else stop("ageMap not supplied, and ageMapInit failed to be created.")
   
-  if (suppliedElsewhere("ageMap", sim)){
+  if (suppliedElsewhere("vegMap", sim)){ 
 
-    sim$flammableMap <- sim$ageMap   #this, on the other hand, had better exist
-    #    sim$ageMap[] <- P(sim)$initialAge ===> Not sure what this does 
+    sim$flammableMap <- sim$vegMap  #this, on the other hand, had better exist
+        #    sim$ageMap[] <- P(sim)$initialAge ===> Not sure what this does 
   }
       
  else {
     
     sim$ageMap <- raster(raster::extent(0,49,0,49),nrow=200, ncol=200, vals=0)
-    sim$flammableMap <- sim$ageMap
+    sim$flammableMap <- sim$vegMap
     warning("Age map was not supplied, creating a random raster.")
     
   }
