@@ -114,11 +114,12 @@ parameters <- list(
 #modules <- list("prepInTest") # TEST PREP INPUTS
 
 modules <- list("scfmCrop", "scfmLandcoverInit", 
-  "scfmRegime", "scfmDriver", "scfmIgnition", "scfmEscape", "scfmSpread", 
+  "scfmRegime", "scfmDisturbanceDriver", "scfmIgnition", "scfmEscape", "scfmSpread", 
   "ageModule", "mapBurns",
   "loadYieldTables", "Hanzlik", 
-  "strataMapFromVegMap", "scfmHarvest", "stateVars")
-# 
+  "strataMapFromVegMap", "scfmHarvest", "stateVars",
+  "birdsAlberta")
+ 
 objects <- list(
                 scfmPars=list(pSpread=0.225,
                   p0=0.115,
@@ -134,7 +135,7 @@ objects <- list(
                 areaInHa = pi
             )
 
-mySim <- simInit(times = times, params = parameters, modules = modules, objects = objects, paths = paths)
+mySim <- simInit(times = times, params = parameters, modules = modules, objects = objects, paths = paths, loadOrder = unlist(modules))
 mySimOut <- spades(mySim, debug = TRUE)
 
 # Yield curve example
