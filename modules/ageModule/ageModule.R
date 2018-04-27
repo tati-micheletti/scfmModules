@@ -17,7 +17,8 @@ defineModule(sim, list(
     defineParameter("returnInterval", "numeric", 1, NA, NA, desc="Time interval between aging aevents"),
     defineParameter("startTime", "numeric", 0, NA, NA, desc="Simulation time at which to initiate aging"),
     defineParameter(".plotInitialTime", "numeric", NA, NA, NA, desc="This describes the simulation time at which the first plot event should occur"),
-    defineParameter(".plotInterval", "numeric", 1, NA, NA, desc="This describes the simulation time at which the first plot event should occur")
+    defineParameter(".plotInterval", "numeric", 1, NA, NA, desc="This describes the simulation time at which the first plot event should occur"),
+    defineParameter(".useCache", "logical", TRUE, NA, NA, "Caching the module")
   ),
   inputObjects = bind_rows(
     expectsInput(objectName="flammableMap", objectClass = "RasterLayer", desc="Template map"),
@@ -66,7 +67,7 @@ Init <- function(sim) {
 
 
 .inputObjects <- function(sim){
-  
+
   if (!suppliedElsewhere("ageMap",sim)){
     
     if(file.exists(file.path(dataPath(sim),"ageMapCropped.tif"))){
