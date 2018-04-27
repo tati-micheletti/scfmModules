@@ -40,7 +40,6 @@ defineModule(sim,  list(
 ))
 
 
-
 ## event types
 #   - type `init` is required for initialiazation
 
@@ -90,5 +89,7 @@ Init <- function(sim) {
   
   if(!suppliedElsewhere("strataMap", sim)){
     stop("No strata map provided. This would normally come from module 'vegMapToStrataMap") # [ IMPROVE ] add a strataMap for the module to work alone
+
+    return(invisible(sim))
   }
 }
