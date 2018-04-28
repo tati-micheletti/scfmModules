@@ -1,3 +1,27 @@
+# TO DO:
+# 
+# Bring ecodistrics to prepInputs from : http://sis.agr.gc.ca/cansis/nsdb/ecostrat/district/ecodistrict_shp.zip [OK]
+# Use the shapefile from FID 339 [OK]
+# use prepInputs on vegMap and ageMaps (ageMap bring from file) [OK] OBS: AgeMap didn't work! Loaded from folder with raster()
+# Need to upload data to folders that don't have it: ie. NFDB_point on scfmRegime [ OK ]
+# Make resolution of pi ha (3.14ha) ==> res = sqrt(10^4 * pi) [ OK ]
+# Alter scfmCrop to make the cropping using prepInputs [ OK ]
+# Then check if all the others work [ Waiting for propInputs() to work again] [ OK ]
+# Then make vegMapToStrataMap (should convert vegMap to the strataMap) [ OK ]
+# Then make the habitatClassMap [ OK ]
+# Finish with the birdsAlberta module:
+#     it should only receive inputs from "ageMap" and "habitatClassMap" and should use the linear function to predict probability presence.
+# Table local [ OK ]
+# Table neighborhood <================ TO DO
+# model [ OK ]
+# construct bird "probability of encounter" raster stack (with all species)  <================ TO DO
+# Caribou module [ OK ] / L_CC values [ OK ] (Steve will come up with the rules for this)
+# Integrate caribou  <================ TO DO
+# Run everything on both server and my computer (cache spades call!!!)  <================ TO DO
+
+
+
+
 # Model
 
 lp ~ B0 +                  B1 * L_CUT +  # Station in recently harvested cutblock (≤30 years) proportion ==> HarvestStateMap > 0
@@ -32,14 +56,14 @@ cellsVeg <- data.table::data.table(adjacent(sim$vegMap,
                                       pairs = TRUE, 
                                       id = TRUE))
 
-cellsAge <- data.table::data.table(adjacent(sim$ageMap, 
-                                              cells = c(1:ncell(sim$ageMap)), 
-                                              directions = distMatrix, 
-                                              include = FALSE, 
-                                              pairs = TRUE, 
-                                              id = TRUE))
+# cellsAge <- data.table::data.table(adjacent(sim$ageMap, 
+#                                               cells = c(1:ncell(sim$ageMap)), 
+#                                               directions = distMatrix, 
+#                                               include = FALSE, 
+#                                               pairs = TRUE, 
+#                                               id = TRUE))
 
-all(cellsVeg$id %in% sim$ageMap[])
+#all(cellsVeg$id %in% sim$ageMap[])
 
 #ac is the index and 24 habitat class in the neighborhood 
 actab <- tabulate(ac[,2]/24)
@@ -60,20 +84,7 @@ Modules :
 #  "birdsAlberta" needs "habitatClassMap" and "ageMap"
 
   
-  # TO DO:
-  # 
-  # Bring ecodistrics to prepInputs from : http://sis.agr.gc.ca/cansis/nsdb/ecostrat/district/ecodistrict_shp.zip [OK]
-  # Use the shapefile from FID 339 [OK]
-  # use prepInputs on vegMap and ageMaps (ageMap bring from file) [OK] OBS: AgeMap didn't work! Loaded from folder with raster()
-  # Need to upload data to folders that don't have it: ie. NFDB_point on scfmRegime [ OK ]
-  # Make resolution of pi ha (3.14ha) ==> res = sqrt(10^4 * pi) [ OK ]
-  # Alter scfmCrop to make the cropping using prepInputs [ OK ]
-  # Then check if all the others work [ Waiting for propInputs() to work again] [ OK ]
-  # Then make vegMapToStrataMap (should convert vegMap to the strataMap)
-  # Then make the habitatClassMap
-  # Finish with the birdsAlberta module:
-  #     it should only receive inputs from "ageMap" and "habitatClassMap" and should use the linear function to predict probability presence.
-  # CHECK WITH STEVE: Caribou module / L_CC values (Steve will come up with the rules for this)
+
 
 ## Changing Resolution === WORKING HERE!
 library(SpaDES)

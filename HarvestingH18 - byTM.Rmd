@@ -74,6 +74,11 @@ It's entertaining to watch the interaction of disturbance, ageing, and a declini
 #Add disturbanceMap and variable persistence Times
 
 ```{r whole_analysis}
+
+devtools::install_github("PredictiveEcology/SpaDES.core", ref = "development") # Make sure you have the latest version of SpaDES.core: 0.1.1.9011
+devtools::install_github("PredictiveEcology/SpaDES.tools", ref = "development") # Make sure you have the latest version of SpaDES.tools: 0.1.1.9010
+devtools::install_github("PredictiveEcology/SpaDES.tools", ref = "development") # Make sure you have the latest version of reproducible: 0.1.4.9016
+
 library(SpaDES)
 library(magrittr)
 library(raster)
@@ -113,12 +118,8 @@ parameters <- list(
 
 #modules <- list("prepInTest") # TEST PREP INPUTS
 
-modules <- list("scfmCrop", "scfmLandcoverInit", 
-  "scfmRegime", "scfmDisturbanceDriver", "scfmIgnition", "scfmEscape", "scfmSpread", 
-  "ageModule", "mapBurns",
-  "loadYieldTables", "Hanzlik", 
-  "strataMapFromVegMap", "scfmHarvest", "stateVars",
-  "birdsAlberta")
+modules <- list("scfmCrop", "scfmLandcoverInit", "scfmRegime", "scfmDisturbanceDriver", "scfmIgnition", "scfmEscape", "scfmSpread", 
+  "ageModule", "mapBurns", "loadYieldTables", "Hanzlik", "strataMapFromVegMap", "scfmHarvest", "stateVars", "birdsAlberta")
  
 objects <- list(
                 scfmPars=list(pSpread=0.225,
@@ -136,6 +137,7 @@ objects <- list(
             )
 
 mySim <- simInit(times = times, params = parameters, modules = modules, objects = objects, paths = paths, loadOrder = unlist(modules))
+
 mySimOut <- spades(mySim, debug = TRUE)
 
 # Yield curve example
