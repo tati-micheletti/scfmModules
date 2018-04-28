@@ -16,15 +16,16 @@ defineModule(sim, list(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
     defineParameter(".plotInitialTime", "numeric", NA, NA, NA, "This describes the simulation time at which the first plot event should occur"),
     defineParameter(".saveInitialTime", "numeric", NA, NA, NA, "This describes the simulation time at which the first save event should occur"),
-    defineParameter(".useCache", "logical", TRUE, NA, NA, "Caching the module")  
+    defineParameter(".useCache", "logical", TRUE, NA, NA, "Caching the module"),
+    defineParameter("returnInterval", "numeric", 1, NA, NA, "Years for scaling rates")
     ),
   inputObjects = bind_rows(
-    expectsInput(objectName = "spreadCalibrationData", objectClass = "data.frame", desc = NA, sourceURL = NA),
-    expectsInput(objectName = "fireRegimeParameters", objectClass = "list", desc = NA, sourceURL = NA),
-    expectsInput(objectName = "fireMapAttr", objectClass = "list", desc = NA, sourceURL = NA)
+    expectsInput(objectName="scfmRegimePars", objectClass="list", desc="canonical regime description"),
+    expectsInput(objectName="landscapeAttr", objectClass="list", desc="details of the current landscape structure"),
+    expectsInput(objectName="cTable2", objectClass="data.frame", desc="lame-ass calibration data")
   ),
   outputObjects = bind_rows(
-    createsOutput(objectName = "disturbanceGeneratorParameters", objectClass = "list", desc = NA)
+    createsOutput(objectName = "scfmPars", objectClass = "list", desc = "parameters for threeStageFireModel")
   )
 ))
 
@@ -47,16 +48,16 @@ doEvent.scfmDisturbanceDriver = function(sim, eventTime, eventType) {
 }
 
 Init <- function(sim){
-  #this table contains calibration data for several landscape sizes
-  #and several min fire sizes (1 or 2 cells), organised by collumn.
-  #The data were made by Steve Cumming in June 2013 for a whole other purpose.
-  #I chose the one that seems most appropriate to me
-  #browser()
-  #we know this table was produced with MinFireSize=2cells.
-  #browser()
+
+  # if(is.null(sim$cTable2)){
+  #   fn <- file.path(dataPath(sim), "FiresN1000MinFiresSize2NoLakes.csv")
+  #   sim$cTable2 <- read.csv(fn)
+  # } #shouldnt be necessary
+  
   y <- sim$cTable2$y
   x <- sim$cTable2$p
-  m.lw <- lowess(y~x,iter=2)
+
+  m.lw <- stats::lowess(y~x,iter=2)
   if (any(diff(m.lw$y)<0))
     warning("scfmDriver: lowess curve non-monotone. Proceed with caution")
   targetSize <- sim$scfmRegimePars$xBar/sim$landscapeAttr$cellSize - 1 
@@ -83,13 +84,13 @@ Init <- function(sim){
   #call to optimise, but I have not proved it, nor am I certain that the function being minimised is 
   #monotone.
   
-  rate<-sim$scfmRegimePars$ignitionRate * sim$landscapeAttr$cellSize * P(sim)$returnInterval 
+  rate <- sim$scfmRegimePars$ignitionRate * sim$landscapeAttr$cellSize * P(sim)$returnInterval 
   pIgnition <- rate #approximate Poisson arrivals as a Bernoulli process at cell level.
   #for Poisson rate << 1, the expected values are the same, partially accounting
   #for multiple arrivals within years. Formerly, I used a poorer approximation
   #where 1-p = P[x==0 | lambda=rate] (Armstrong and Cumming 2003).
   #See the .Rmd file for details.
-  
+
   if (pIgnition >= 1 || pIgnition < 0)
     stop("illegal estimate of igntition probability")
   if (pIgnition > 0.01)
@@ -100,7 +101,10 @@ Init <- function(sim){
                      naiveP0=minP0, 
                      pIgnition=pIgnition,
                      maxBurnCells=as.integer(round(sim$scfmRegimePars$emfs/sim$landscapeAttr$cellSize)))
-}
+
+  return(invisible(sim))
+  
+  }
 
 
 .inputObjects <- function(sim) {
