@@ -16,16 +16,17 @@ defineModule(sim, list(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
     defineParameter("modelTime", "numeric", 0, NA, NA, "This describes the simulation time at which the first plot event should occur"),
     defineParameter(".plotInitialTime", "numeric", 0, NA, NA, "This describes the simulation time at which the first save event should occur"),
-    defineParameter(".plotInterval", "numeric", 1, NA, NA, "This describes the simulation time at which the first save event should occur"), # ONCE WORKING, CHANGE TO EVERY 5 YEARS!!!
+    defineParameter(".plotInterval", "numeric", 10 , NA, NA, "This describes the simulation time at which the first save event should occur"),
     defineParameter(".useCache", "logical", TRUE, NA, NA, "Should this entire module be run with caching activated? This is generally intended for data-type modules, where stochasticity and time are not relevant")
   ),
   inputObjects = bind_rows(
-    expectsInput(objectName = "covarParams", objectClass = "data.table", desc = "Table with model parameters", sourceURL = NA),
+    expectsInput(objectName = "covarParams", objectClass = "list", desc = "Table with model parameters", sourceURL = NA),
     expectsInput(objectName = "covar", objectClass = "data.table", desc = "Table with covariate values", sourceURL = NA)
     
   ),
   outputObjects = bind_rows(
-    createsOutput(objectName = NA, objectClass = NA, desc = NA)
+    createsOutput(objectName = "birdModelVernier", objectClass = "list", desc = "Lists with table containing cell ID and abundance value per species"),
+    createsOutput(objectName = "covarTable", objectClass = "list", desc = "List of covariates for all years")
   )
 ))
 
@@ -39,15 +40,27 @@ doEvent.birdsAlberta = function(sim, eventTime, eventType) {
       # schedule future event(s)
       
       sim <- scheduleEvent(sim, P(sim)$modelTime, "birdsAlberta", "model")
-      sim <- scheduleEvent(sim, time(sim) + P(sim)$updateInterval, "birdsAlberta", "updateCovar") # update the table every 5 years
       sim <- scheduleEvent(sim, P(sim)$.plotInitialTime, "birdsAlberta", "plot")
     },
     
     model = {
 
-      sim$covar <- getLocalCovars(covarTable = sim$covar, covarParams = sim$covarParams) # [ IMPROVE ] use %>%
-      sim$covar <- getNeighborhoodCovars(covarTable = sim$covar, covarParams = sim$covarParams)
-      sim$covarTable[[time(sim)]] <- sim$covar
+      sim$covar <- Cache(getLocalCovars, covarTable = sim$covar,
+                                  disturbanceMap = sim$disturbanceMap,
+                                  ageMap = sim$ageMap,
+                                  habitatMap = sim$habitatMap,
+                                  vegMap = sim$vegMap) # [ IMPROVE ] use %>%
+  
+      sim$covar <- Cache(getNeighborhoodCovars, covarTable = sim$covar, 
+                                         disturbanceMap = sim$disturbanceMap,
+                                         ageMap = sim$ageMap,
+                                         habitatMap = sim$habitatMap,
+                                         vegMap = sim$vegMap)
+      
+      sim$covarTable[[paste0("YEAR",time(sim))]] <- sim$covar      
+      
+      sim$birdModelVernier <- Cache(birdModelVernier, covarTable = sim$covar,
+                                               covarParams = sim$covarParams)
 
       # schedule future event(s)
       sim <- scheduleEvent(sim, time(sim) + P(sim)$.plotInterval, "birdsAlberta", "model")
@@ -55,7 +68,7 @@ doEvent.birdsAlberta = function(sim, eventTime, eventType) {
     
     plot = {
       
-                # 3. Write model predictions and predictions for each cell of the raster (WRITE RASTER)
+      # 3. raster (WRITE RASTER)
       
       Plot(sim$birdAbundance, title = "Bird abundance") # STACK WITH ALL SPECIES?
       
@@ -80,23 +93,23 @@ Init <- function(sim) {
  
   if(!suppliedElsewhere("covarParams", sim)){
     
-     sim$covarParams <- createParams() # [ IMPROVE ] This can come from a model afterwards
+     sim$covarParams <- invisible(createParams()) # [ IMPROVE ] This can come from a model afterwards # IF anything goes wrong, take out invisible
   }
   
   if(suppliedElsewhere("habitatMap",sim)){
     
-    sim$covar <- data.table::data.table(matrix(NA, 
-                                               ncol = length(names(sim$covarParams)[3:ncol(sim$covarParams)]), 
+    sim$covar <- data.table::data.table(matrix(0,
+                                               ncol = length(colnames(covarParams[[1]])[2:length(colnames(covarParams[[1]]))]), 
                                                nrow = ncell(sim$habitatMap)))
   } else {
     
         if(suppliedElsewhere("vegMap",sim)){
-        sim$covar <- data.table::data.table(matrix(NA, 
-                                                   ncol = length(names(sim$covarParams)[3:ncol(sim$covarParams)]), 
+        sim$covar <- data.table::data.table(matrix(0, 
+                                                   ncol = length(colnames(covarParams[[1]])[2:length(colnames(covarParams[[1]]))]), 
                                                    nrow = ncell(sim$vegMap))) 
         } else stop("Please, provide a vegetation or habitat map.") }
   
-  names(sim$covar) <- names(sim$covarParams)[3:ncol(sim$covarParams)]
+  names(sim$covar) <- colnames(covarParams[[1]])[2:length(colnames(covarParams[[1]]))]
 
   return(invisible(sim))
 }
