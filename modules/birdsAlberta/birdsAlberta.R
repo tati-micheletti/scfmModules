@@ -99,13 +99,13 @@ Init <- function(sim) {
   if(suppliedElsewhere("habitatMap",sim)){
     
     sim$covar <- data.table::data.table(matrix(0,
-                                               ncol = length(colnames(covarParams[[1]])[2:length(colnames(covarParams[[1]]))]), 
+                                               ncol = length(colnames(sim$covarParams[[1]])[2:length(colnames(sim$covarParams[[1]]))]), 
                                                nrow = ncell(sim$habitatMap)))
   } else {
     
         if(suppliedElsewhere("vegMap",sim)){
         sim$covar <- data.table::data.table(matrix(0, 
-                                                   ncol = length(colnames(covarParams[[1]])[2:length(colnames(covarParams[[1]]))]), 
+                                                   ncol = length(colnames(sim$covarParams[[1]])[2:length(colnames(sim$covarParams[[1]]))]), 
                                                    nrow = ncell(sim$vegMap))) 
         } else stop("Please, provide a vegetation or habitat map.") }
   
