@@ -30,7 +30,7 @@ paths <- list(
 setPaths(modulePath = paths$modulePath, inputPath = paths$inputPath, outputPath = paths$outputPath, cachePath = paths$cachePath)
 
 ## list the modules to use
-times <- list(start = 0, end = 1)
+times <- list(start = 0, end = 50)
 parameters <- list(
   Hanzlik = list(replanInterval = 10,
                  rationPeriodMultiplier = 2),
@@ -53,7 +53,7 @@ parameters <- list(
 #modules <- list("prepInTest") # TEST PREP INPUTS
 
 modules <- list("scfmCrop", "scfmLandcoverInit", "scfmRegime", "scfmDisturbanceDriver", "scfmIgnition", "scfmEscape", "scfmSpread", 
-  "ageModule", "mapBurns", "loadYieldTables", "Hanzlik", "strataMapFromVegMap", "scfmHarvest", "stateVars") #,"birdsAlberta")
+  "ageModule", "mapBurns", "loadYieldTables", "Hanzlik", "strataMapFromVegMap", "scfmHarvest", "stateVars","birdsAlberta","caribouPop")
  
 objects <- list(
                 scfmPars=list(pSpread=0.225,
@@ -70,12 +70,12 @@ objects <- list(
                 areaInHa = pi
             )
 
-dev.useRSGD(TRUE)
-dev()
-clearPlot()
+# dev.useRSGD(TRUE)
+# dev()
+# clearPlot()
 
 mySim <- simInit(times = times, params = parameters, modules = modules, objects = objects, paths = paths, loadOrder = unlist(modules))
-mySimOut <- spades(mySim, debug = TRUE)
+system.time(mySimOut <- spades(mySim, debug = TRUE))
 
 # Yield curve example
 plot(mySimOut$yieldTables$AB$AwSw, xlab="Stand Age", ylab="Volume (m^3/ha)")
@@ -92,7 +92,7 @@ Plot(mySimOut$ageMap)
 ### ADDED THE TAG: [ IMPROVE ] on lines that can be improved later on to be more modular and aviod errors
  When ageMap is better: substitute `sim$flammableMap <- sim$vegMap` to `sim$ageMap` (think I have done it already. Doesn't matter as it is just the template anyway)
 
-[ IMPROVE ] Change colors from MAPS: Habitat Classification, Vegetation Map (not needed. Not plotting!) and Strata for Harvesting? Steve
-[ IMPROVE ] Let people chose the district they want from Global. Create a function to bring up the table for that Steve
+[ IMPROVE ] Change colors from MAPS: Habitat Classification, Vegetation Map (not needed. Not plotting!) and Strata for Harvesting? [ Steve ]
+[ IMPROVE ] Let people chose the district they want from Global. Create a function to bring up the table for that [ lSteve ]
 
 
