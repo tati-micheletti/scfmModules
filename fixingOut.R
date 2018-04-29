@@ -6,6 +6,7 @@ mySimOut$covar <- data.table::data.table(matrix(0,
                                            ncol = length(colnames(mySimOut$covarParams[[1]])[2:length(colnames(mySimOut$covarParams[[1]]))]), 
                                            nrow = ncell(mySimOut$habitatMap)))
 
+names(mySimOut$covar) <- colnames(mySimOut$covarParams[[1]])[2:length(colnames(mySimOut$covarParams[[1]]))]
 
 
 getNeighborhoodCovars <- function(covarTable = sim$covar,
@@ -14,22 +15,17 @@ getNeighborhoodCovars <- function(covarTable = sim$covar,
                                   habitatMap = sim$habitatMap,
                                   vegMap = sim$vegMap){
   
-  
-  browser()
-  
   library(data.table)
-  #ROUND NEIGHBORHOOD
-  # distMatrix <- matrix(c(0, rep(1, 3), 0, rep(1, 7), 0, rep(1, 7), 0, rep(1, 3), 0), ncol = 5) #Doesn't work for adjacent
   
   distMatrix <- matrix(c(rep(1, 12), 0, rep(1,12)), ncol = 5)
   
-  cellsN <- data.table::data.table(adjacent(habitatMap, 
+  cellsN <- data.table::data.table(raster::adjacent(habitatMap, 
                                             cells = c(1:ncell(habitatMap)), 
                                             directions = distMatrix, 
                                             include = FALSE, 
                                             pairs = TRUE, 
                                             id = FALSE))
-  # NUMERATORS
+  
   extrHabitat <- habitatMap[cellsN$to]
   extrAge <- ageMap[cellsN$to]
   extrDisturbance <- disturbanceMap[cellsN$to]
@@ -40,78 +36,145 @@ getNeighborhoodCovars <- function(covarTable = sim$covar,
   
   countPerNeig <- cellsN[, .N, by = from] # Summary Table
   
-  #FROM HABITAT: Of the 8 cells that are neighbours of cell 1, how many are 4, how many are 5, how many are 9...?  
-  #FROM AGE: Of the 8 cells that are neighbours of cell 1, how many are <30, how many are 30<x<91, >91?
-  #FROM DISTURBANCE: Of the 8 cells that are neighbours of cell 1, how many are =2?... CHECK GREEN BOOK TO KNOW WHAT I NEED...
+  cropMap <- vegMap[]*0
+  cropMap[] <- ifelse(cropMap[]==0, 1, NA)
   
-  countPerNeig <- 
+  N_CUT <-  cellsN[, sum(disturbance==2 | age<31, na.rm = TRUE), by = from]
+  N_CUT <- N_CUT$V1/countPerNeig$N
+  N_CUT <- N_CUT*cropMap
+
+  N_LATE <-  cellsN[, sum(disturbance==0 & age>90 & habitat==5, na.rm = TRUE), by = from]
+  N_LATE <- N_LATE$V1/countPerNeig$N
+  N_LATE <- N_LATE*cropMap
   
-  # actab <- tabulate(distMatrix)
-  # actab <- tabulate(ac[,2]/24)
+  N_DEC <-  cellsN[, sum(disturbance==0 & (habitat==4 | habitat==5), na.rm = TRUE), by = from]
+  N_DEC <- N_DEC$V1/countPerNeig$N
+  N_DEC <- N_DEC*cropMap
   
-  N_LATE <- sum(ageMap[ac[,1]]>90)/24
-  N_RICH <- sum(actab>0)
+  N_MIX <-  cellsN[, sum(disturbance==0 & habitat==9, na.rm = TRUE), by = from]
+  N_MIX <- N_MIX$V1/countPerNeig$N
+  N_MIX <- N_MIX*cropMap
   
+  N_SB <-  cellsN[, sum(disturbance==0 & habitat==7, na.rm = TRUE), by = from]
+  N_SB <- ifelse(N_SB$V1>0,1,0)
+  N_SB <- N_SB*cropMap
   
+  N_RICH <-  cellsN[, length(unique(habitat)), by = from]
+  N_RICH <- N_RICH$V1
+  N_RICH <- N_RICH*cropMap
+  
+  covarTable$N_CUT <- N_CUT
+  covarTable$N_DEC <- N_DEC
+  covarTable$N_MIX <- N_MIX
+  covarTable$N_LATE <- N_LATE
+  covarTable$N_SB <- N_SB
+  covarTable$N_RICH <- N_RICH
+  
+  # PUT RESULTS INTO covarTable
+  
+  ############ CODE 1 ################# - Alternative
+  
+  # cv <- sapply(pixel, function(x){
+  #   
+  #   subSet <- countPerNeig[from==x,]
+  #   CUT <- sum(subSet$disturbance==2 | subSet$age<31, na.rm = TRUE)
+  #   LATE <- sum(subSet$disturbance==0 & subSet$age>90 & subSet$habitat==5, na.rm = TRUE)
+  #   DEC <- sum(subSet$disturbance==0 & (subSet$habitat==4 | subSet$habitat==5), na.rm = TRUE)
+  #   MIX <- sum(subSet$disturbance==0 & subSet$habitat==9, na.rm = TRUE)
+  #   dnom <- countPerNeig[from==x, N]
+  #   
+  #   N_CUT <- CUT/dnom
+  #   N_LATE <- LATE/dnom
+  #   N_DEC <- DEC/dnom
+  #   N_MIX <- MIX/dnom
+  #   N_SB <- ifelse(sum(subSet$disturbance==0 & subSet$habitat==7)>0, 1, 0)
+  #   N_RICH <- length(unique(subSet$habitat))
   # 
-  # 
-  # # TO SUBSTITUTE IN COVAR TABLE
-  # 
-  # invisible({
+  #   rw <- c(N_CUT, N_LATE, N_DEC, N_MIX, N_SB, N_RICH)
   #   
-  #   if(!"ID" %in% names(covarTable)){
-  #     covarTable$ID <- seq(1:nrow(covarTable))
-  #   }
-  #   naCells <- which(is.na(habitatMap[]))
-  #   covarTable <- covarTable[ID %in% naCells, names(covarTable)[1:12] := NA_real_]
-  #   
-  #   # L_CUT
-  #   if(!length(which(disturbanceMap[]==2 | ageMap[]<31))==0){
-  #     L_CUT.rows <- which(disturbanceMap[]==2 | ageMap[]<31)
-  #     covarTable[ID %in% L_CUT.rows, L_CUT := 1L]
-  #   }
-  #   
-  #   # L_ODEC
-  #   if(!length(which(disturbanceMap[]==0 & ageMap[]>90 & habitatMap[]==5))==0){
-  #     L_ODEC.rows <- which(disturbanceMap[]==0 & ageMap[]>90 & habitatMap[]==5) 
-  #     covarTable[ID %in% L_ODEC.rows, L_ODEC := 1L]  
-  #   }
-  #   
-  #   # L_MIX (old)
-  #   if(!length(which(disturbanceMap[]==0 & ageMap[]>90 & habitatMap[]==9))==0){
-  #     L_MIX.rows <- which(disturbanceMap[]==0 & ageMap[]>90 & habitatMap[]==9)
-  #     covarTable[ID %in% L_MIX.rows, L_MIX := 1L]
-  #   }
-  #   
-  #   # L_YDEC
-  #   if(!length(which(disturbanceMap[]==0 & (ageMap[]>30 & ageMap[]<91) & habitatMap[]==4))==0){
-  #     L_YDEC.rows <- which(disturbanceMap[]==0 & (ageMap[]>30 & ageMap[]<91) & habitatMap[]==4)
-  #     covarTable[ID %in% L_YDEC.rows, L_YDEC := 1L]  
-  #   }
-  #   
-  #   # L_MIX (young)
-  #   if(!length(which(disturbanceMap[]==0 & (ageMap[]>30 & ageMap[]<91) & habitatMap[]==9))==0){
-  #     L_MIX.rows <- which(disturbanceMap[]==0 & (ageMap[]>30 & ageMap[]<91) & habitatMap[]==9)
-  #     covarTable[ID %in% L_MIX.rows, L_MIX := 1L]
-  #   }
-  #   
-  #   # L_CC
-  #   closed <- which(vegMap[] %in% c(1:5))
-  #   medium <- which(vegMap[] %in% c(6:7, 12))
-  #   low <- which(vegMap[] %in% c(8:11, 13:15, 25))
-  #   covarTable[ID %in% closed, L_CC := 0.8]
-  #   covarTable[ID %in% medium, L_CC := 0.6]
-  #   covarTable[ID %in% low, L_CC := 0.3]
-  #   
-  #   #L_WDIS: already 0
-  #   
+  #   return(rw)
   # })
   # 
+  
+  
+  # check covarTable
+  # place cv in covarTable
+  
+  
+  ############ CODE 2 #################
+  
+# N_CUT <- sapply(pixel, function(x){
+#   
+#       subSet <- countsType[from==x,]
+#       nom <- sum(subSet$disturbance==2 | subSet$age<31)
+#       dnom <- countPerNeig[from==x, N]
+#       N_CUT <- nom/dnom
+#       
+#       return(N_CUT)
+#     })
+# 
+# N_LATE <- sapply(pixel, function(x){
+#   
+#   subSet <- countsType[from==x,]
+#   nom <- sum(subSet$disturbance==0 & subSet$age>90 & subSet$habitat==5)
+#   dnom <- countPerNeig[from==x, N]
+#   N_LATE <- nom/dnom
+#   
+#   return(N_LATE)
+# })
+# 
+# N_DEC <- sapply(pixel, function(x){
+#   
+#   subSet <- countsType[from==x,]
+#   nom <- sum(subSet$disturbance==0 & (subSet$habitat==4 | subSet$habitat==5))
+#   dnom <- countPerNeig[from==x, N]
+#   N_DEC <- nom/dnom
+#   
+#   return(N_DEC)
+# })
+# 
+# N_MIX <- sapply(pixel, function(x){
+#   
+#   subSet <- countsType[from==x,]
+#   nom <- sum(subSet$disturbance==0 & subSet$habitat==9)
+#   dnom <- countPerNeig[from==x, N]
+#   N_MIX <- nom/dnom
+#   
+#   return(N_MIX)
+# })
+# 
+# N_SB <- sapply(pixel, function(x){
+#   
+#   subSet <- countsType[from==x,]
+#   nom <- sum(subSet$disturbance==0 & subSet$habitat==7)
+#   N_SB <- ifelse(nom>0, 1, 0)
+#   
+#   return(N_SB)
+# })
+# 
+# N_RICH <- sapply(pixel, function(x){
+#   
+#   subSet <- countsType[from==x,]
+#   N_RICH <- length(unique(subSet$habitat))
+#   
+#   return(N_RICH)
+# })
+# 
+# 
+# covarTable[, N_CUT := N_CUT]
+# covarTable[, N_LATE := N_LATE]
+# covarTable[, N_DEC := N_DEC]
+# covarTable[, N_MIX := N_MIX]
+# covarTable[, N_SB := N_SB]
+# covarTable[, N_RICH := N_RICH]
+
+
+
   return(invisible(covarTable))
 }
 
-nc <- reproducible::Cache(getNeighborhoodCovars,covarTable = mySimOut$covar, 
-                   disturbanceMap = mySimOut$disturbanceMap,
-                   ageMap = mySimOut$ageMap,
-                   habitatMap = mySimOut$habitatMap,
-                   vegMap = mySimOut$vegMap)
+a <- getNeighborhoodCovars(covarTable = mySimOut$covar,
+                                       disturbanceMap = mySimOut$disturbanceMap,
+                                       ageMap = mySimOut$ageMap,
+                                       habitatMap = mySimOut$habitatMap,
+                                       vegMap = mySimOut$vegMap)
