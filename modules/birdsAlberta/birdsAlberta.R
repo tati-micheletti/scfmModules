@@ -68,10 +68,15 @@ doEvent.birdsAlberta = function(sim, eventTime, eventType) {
     
     plot = {
       
-      # 3. raster (WRITE RASTER)
+      sim$birdAbundance <- speciesRasterStack(birdModelVernier = sim$birdModelVernier,
+                                              rasterTemplate = sim$vegMap)
       
-      Plot(sim$birdAbundance, title = "Bird abundance") # STACK WITH ALL SPECIES?
-      
+      lapply(names(sim$covarParams), FUN = function(x){
+        
+        Plot(sim$birdAbundance[[x]], title = "Bird abundance") # STACK WITH ALL SPECIES?        
+        
+      })
+
       # schedule future event(s)
       sim <- scheduleEvent(sim, time(sim) + P(sim)$.plotInterval, "birdsAlberta", "plot")
       
@@ -109,7 +114,7 @@ Init <- function(sim) {
                                                    nrow = ncell(sim$vegMap))) 
         } else stop("Please, provide a vegetation or habitat map.") }
   
-  names(sim$covar) <- colnames(covarParams[[1]])[2:length(colnames(covarParams[[1]]))]
+  names(sim$covar) <- colnames(sim$covarParams[[1]])[2:length(colnames(sim$covarParams[[1]]))]
 
   return(invisible(sim))
 }
