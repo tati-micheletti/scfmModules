@@ -23,7 +23,7 @@ defineModule(sim, list(
     defineParameter(".plotInitialTime", "numeric", 0, NA, NA, "This describes the simulation time at which the first plot event should occur"),
     defineParameter(".plotInterval", "numeric", 1, NA, NA, "This describes the simulation time at which the first plot event should occur"),
     defineParameter(".plotInterval", "numeric", 1, NA, NA, "This describes the simulation time at which the first plot event should occur"),
-    defineParameter(".useCache", "logical", TRUE, NA, NA, "Caching the module")
+    defineParameter(".useCache", "logical", FALSE, NA, NA, "Caching the module")
   ),
   inputObjects = bind_rows(
     #expectsInput("objectName", "objectClass", "input object description", sourceURL, ...),
@@ -55,7 +55,7 @@ doEvent.scfmHarvest = function(sim, eventTime, eventType) {
 
       # schedule future event(s)
       sim <- scheduleEvent(sim, P(sim)$startTime, "scfmHarvest", "harvest")
-      sim <- scheduleEvent(sim, P(sim)$.saveInitialTime, "scfmHarvest", "plot")
+      sim <- scheduleEvent(sim, P(sim)$.plotInitialTime, "scfmHarvest", "plot")
     },
     harvest = {
       
@@ -65,7 +65,7 @@ doEvent.scfmHarvest = function(sim, eventTime, eventType) {
     },
     plot = {
       
-      Plot(sim$harvestStateMap, legendRange=0:1)
+      # Plot(sim$harvestStateMap, legendRange=0:1, title = "Harvest State Map", new = TRUE)
       
       sim <- scheduleEvent(sim, time(sim)+P(sim)$.plotInterval, "scfmHarvest", "plot")
     },

@@ -19,7 +19,7 @@ defineModule(sim, list(
   reqdPkgs=list("raster","rgeos","sp"),
   documentation = list("README.txt", "scfmCrop.Rmd"),
   parameters=rbind(
-    defineParameter(".useCache", "logical", TRUE, NA, NA, desc="Use cache or not.")
+    defineParameter(".useCache", "logical", FALSE, NA, NA, desc="Use cache or not.")
     ),
   inputObjects=bind_rows(
     expectsInput(objectName = "studyArea", objectClass = "SpatialPolygons", desc = "study area", sourceURL = sim$url.studyArea),
@@ -32,7 +32,9 @@ defineModule(sim, list(
     expectsInput(objectName = "numTypes", objectClass = "numeric", desc = "Number of strata", sourceURL = NA),
     expectsInput(objectName = "areaInHa", objectClass = "numeric", desc = "Resolution for raster pixels in hactares", sourceURL = NA),
     expectsInput(objectName = "templateRaster", objectClass = "RasterLayer", desc = "Template raster", sourceURL = sim$url.vegMap),
-    expectsInput(objectName = "flammableMap", objectClass = "RasterLayer", desc = "flammable Map raster", sourceURL = NA)
+    expectsInput(objectName = "flammableMap", objectClass = "RasterLayer", desc = "flammable Map raster", sourceURL = NA),
+    expectsInput(objectName = "polyMatrix", objectClass = "matrix", desc = "Matrix for random polygon", sourceURL = NA),
+    expectsInput(objectName = "areaSize", objectClass = "numeric", desc = "Area size for random polygon", sourceURL = NA)
     
   ),
   outputObjects=bind_rows(
@@ -67,11 +69,13 @@ Init <- function(sim) {
                               destinationPath = dataPath(sim))
   }
   if(all(!suppliedElsewhere("studyArea", sim) & !file.exists(file.path(inputPath(sim), "studyArea.shp")))){
-    sim$studyArea <- Cache(prepInputs, url = sim$url.studyArea, destinationPath = dataPath(sim))#,rasterToMatch = sim$templateRaster) # RasterToMatch temporarily not working
-    sim$studyArea <- projectInputs(studyArea, raster::crs(sim$templateRaster))
-    sim$studyArea <- sim$studyArea[sim$studyArea$ECODISTRIC==339,]
+    # sim$studyArea <- Cache(prepInputs, url = sim$url.studyArea, destinationPath = dataPath(sim))#,rasterToMatch = sim$templateRaster) # RasterToMatch temporarily not working
+    set.seed(1983)
+    sim$studyArea <- randomPolygon(x = sim$polyMatrix, hectares = sim$areaSize)
+    # sim$studyArea <- projectInputs(studyArea, raster::crs(sim$templateRaster))
+    # sim$studyArea <- sim$studyArea[sim$studyArea$ECODISTRIC==339,]
     
-    rgdal::writeOGR(obj = sim$studyArea, dsn = file.path(dataPath(sim), "studyArea.shp"), layer = "studyArea.shp", driver = "ESRI Shapefile")
+    # rgdal::writeOGR(obj = sim$studyArea, dsn = file.path(dataPath(sim), "studyArea.shp"), layer = "studyArea.shp", driver = "ESRI Shapefile")
     
   } else {
     if(!suppliedElsewhere("studyArea", sim)){

@@ -18,7 +18,7 @@ defineModule(sim, list(
     defineParameter(".plotInitialTime", "numeric", 0, NA, NA, desc="Initial time for plotting"),
     defineParameter(".plotInterval", "numeric", NA, NA, NA, desc="Interval between plotting"), #usually, once is enough
     defineParameter("nonFlammClasses", "numeric", c(36, 37, 38, 39), NA, NA, desc="which classes don't burn"),
-    defineParameter(".useCache", "logical", TRUE, NA, NA, desc="Should Cache the processed vegMap?")
+    defineParameter(".useCache", "logical", FALSE, NA, NA, desc="Should Cache the processed vegMap?")
     ),
   inputObjects=bind_rows(
     expectsInput(objectName="nNbrs", objectClass = "numeric", desc="raster cell neighborhood defaults to 8"),
@@ -45,7 +45,7 @@ doEvent.scfmLandcoverInit = function(sim, eventTime, eventType, debug=FALSE) {
     plot = {
       
       #Plot(sim$vegMap, new=TRUE, title = "Vegetation Map") # We don't need it as it doesn't change!
-      # Plot(sim$flammableMap) # this is failing probably due to a bug in Plot
+      Plot(sim$flammableMap, title = "Flammable Map", new = TRUE) # this is failing probably due to a bug in Plot
                                                            # EJM is working on it 20160224
       
       sim <- scheduleEvent(sim, time(sim) + P(sim)$.plotInterval, "scfmLandcoverInit", "plot")
@@ -68,7 +68,8 @@ Init = function(sim) {
   # flammableTable <- cbind(oldClass, newClass)
   # sim$flammableMap <-raster::ratify(raster::reclassify(sim$flammableMap, flammableTable),count=TRUE)
   
-  reclassNonFlamm <- matrix(c(1, 38, 0, 38, 39, 1, 39, 40, 0), byrow = TRUE, ncol = 3)    # [ IMPROVE ] Pass argument from global
+#  reclassNonFlamm <- matrix(c(1, 38, 0, 38, 39, 1, 39, 40, 0), byrow = TRUE, ncol = 3)    # [ IMPROVE ] Pass argument from global
+  reclassNonFlamm <- matrix(c(1, 36, 0, 36, 38, 1, 38, 39, 0, 39, 40, 1), byrow = TRUE, ncol = 3)    # [ IMPROVE ] Pass argument from global
 
   # 36 - Urban and Built-up
   # 37 - Water bodies

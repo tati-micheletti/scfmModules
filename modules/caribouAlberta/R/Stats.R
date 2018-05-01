@@ -18,9 +18,9 @@ Stats <- function(disturbanceMap = sim$disturbanceMap,
   Nt <- SorensenStats$Nt[nrow(SorensenStats)]
   Nt <-  lambda * Nt
 
-  if(length(maxCaribPop)==0){
-    maxCaribPop <- 69343.93 # Hard coded just in case... We can see later if it is necessary [ IMPROVE ] 
-  }
+  # if(length(maxCaribPop)==0){
+  #   maxCaribPop <- 69343.93 # Hard coded just in case... We can see later if it is necessary [ IMPROVE ] 
+  # }
   
   if(length(Nt)==0){ # Time 0
     Nt <- maxCaribPop

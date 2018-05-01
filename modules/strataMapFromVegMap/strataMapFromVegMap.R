@@ -18,7 +18,7 @@ defineModule(sim, list(
     defineParameter(".initialTime", "numeric", 0, NA, NA, "This describes the simulation time interval between plot events"),
     defineParameter(".saveInitialTime", "numeric", NA, NA, NA, "This describes the simulation time at which the first save event should occur"),
     defineParameter(".saveInterval", "numeric", NA, NA, NA, "This describes the simulation time interval between save events"),
-    defineParameter(".useCache", "logical", TRUE, NA, NA, "Should this entire module be run with caching activated? This is generally intended for data-type modules, where stochasticity and time are not relevant")
+    defineParameter(".useCache", "logical", FALSE, NA, NA, "Should this entire module be run with caching activated? This is generally intended for data-type modules, where stochasticity and time are not relevant")
   ),
   inputObjects = bind_rows(
     #expectsInput("objectName", "objectClass", "input object description", sourceURL, ...),
@@ -48,8 +48,8 @@ doEvent.strataMapFromVegMap = function(sim, eventTime, eventType) {
     
     plot = {
       
-      Plot(sim$strataMap, title = "Strata for Harvesting")
-      Plot(sim$habitatMap, title = "Habitat Classification")
+      Plot(sim$strataMap, title = "Strata for Harvesting", new = TRUE)
+      Plot(sim$habitatMap, title = "Habitat Classification", new = TRUE)
       
     },
     

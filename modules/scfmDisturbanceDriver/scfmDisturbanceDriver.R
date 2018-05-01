@@ -16,7 +16,7 @@ defineModule(sim, list(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
     defineParameter(".plotInitialTime", "numeric", NA, NA, NA, "This describes the simulation time at which the first plot event should occur"),
     defineParameter(".saveInitialTime", "numeric", NA, NA, NA, "This describes the simulation time at which the first save event should occur"),
-    defineParameter(".useCache", "logical", TRUE, NA, NA, "Caching the module"),
+    defineParameter(".useCache", "logical", FALSE, NA, NA, "Caching the module"),
     defineParameter("returnInterval", "numeric", 1, NA, NA, "Years for scaling rates")
     ),
   inputObjects = bind_rows(

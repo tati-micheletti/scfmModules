@@ -49,8 +49,8 @@ doEvent.harvest = function(sim, eventTime, eventType, debug = FALSE) {
       sim <- scheduleEvent(sim, P(sim)$.plotInitialTime, "harvest", "plot")
     },
     plot = {
-      Plot(sim$harvestStateMap, legendRange=0:1)
-      #Plot(sim$disturbanceMap, legendRange=0:3,zero.color="white")
+      # Plot(sim$harvestStateMap, legendRange=0:1)
+      Plot(sim$disturbanceMap, legendRange=0:3,zero.color="white")
       sim <- scheduleEvent(sim, time(sim)+P(sim)$.plotInterval, "harvest", "plot")
     },
     harvest = {

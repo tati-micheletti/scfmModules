@@ -19,7 +19,7 @@ defineModule(sim, list(
     defineParameter(".plotInitialTime", "numeric", NA, NA, NA, "Time of first Plot event, or NA"),
     defineParameter(".statsInitialTime", "numeric", 0, NA, NA, "Time of first Plot event, or NA"),
     defineParameter(".plotInterval", "numeric", 1, NA, NA, "Timeunits beteen plot events"),
-    defineParameter(".useCache", "logical", TRUE, NA, NA, "Caching the module")
+    defineParameter(".useCache", "logical", FALSE, NA, NA, "Caching the module")
   ),
   inputObjects = 
     bind_rows(
@@ -27,11 +27,13 @@ defineModule(sim, list(
       expectsInput(objectName = "spreadStateE", objectClass = "data.table", desc = "spread State produced by prior call", sourceURL = NA),
       expectsInput(objectName = "ignitionLoci", objectClass = "numeric", desc = "ignitions points for stand-alone execution", sourceURL = NA),
       expectsInput(objectName = "nNbrs", objectClass = "numeric", desc = "adjacenc spec, 4 or 8 only.", sourceURL = NA),
-      expectsInput(objectName = "flammableMap", objectClass = "RasterLayer", desc = "map of flammable cells", sourceURL = NA)
+      expectsInput(objectName = "flammableMap", objectClass = "RasterLayer", desc = "map of flammable cells", sourceURL = NA),
+      expectsInput(objectName = "burnStats", objectClass = "data.frame", desc = "table of burn statistics init", sourceURL = NA)
     ),
   outputObjects = bind_rows(
     createsOutput(objectName = "burnMap", objectClass = "RasterLayer", desc = "table of active initial spread cells", sourceURL = NA),
-    createsOutput(objectName = "spreadState", objectClass = "data.table", desc = "table of active initial spread cells", sourceURL = NA)
+    createsOutput(objectName = "spreadState", objectClass = "data.table", desc = "table of active initial spread cells", sourceURL = NA),
+    createsOutput(objectName = "burnStats", objectClass = "data.frame", desc = "table of burn statistics", sourceURL = NA)
   )
 ))
 
@@ -48,7 +50,9 @@ doEvent.scfmSpread = function(sim, eventTime, eventType, debug = FALSE) {
       sim <- scheduleEvent(sim, P(sim)$.plotInitialTime, "scfmSpread", "plot")
     },
     plot = {
-      sim <- sPlot(sim)
+      
+      Plot(sim$burnMap, title="Fire map", legendRange=c(0,3), new = TRUE)
+      
       sim <- scheduleEvent(sim, time(sim) + P(sim)$.plotInterval, "scfmSpread", "plot")
     },
     stats = {

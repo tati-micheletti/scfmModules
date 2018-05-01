@@ -11,7 +11,7 @@ defineModule(sim, list(
   timeunit = "year",
   citation = list("citation.bib"),
   documentation = list("README.txt", "caribouAlberta.Rmd"),
-  reqdPkgs = list(),
+  reqdPkgs = list("ggplot2"),
   parameters = rbind(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
     defineParameter("N0", "numeric", NA_real_, 0, 5000, "Initial herd size"),
@@ -28,8 +28,8 @@ defineModule(sim, list(
     createsOutput(objectName = "SorensenStats", objectClass ="data.frame", desc = "lambda and herd size table"),
     createsOutput(objectName = "Nt", objectClass ="numeric", desc = "Caribou population size in time t"),
 #    createsOutput(objectName = "caribouPopGrowth", objectClass ="data.frame", desc = "Caribou population growth graph"),
-    createsOutput(objectName = "sim$maxCaribPop", objectClass ="numeric", desc = "Max Caribou population")
-    
+    createsOutput(objectName = "maxCaribPop", objectClass ="numeric", desc = "Max Caribou population"),
+createsOutput(objectName = "plotCaribou", objectClass ="ggplot", desc = "Caribou population/lambda over time")
   )
 ))
 
@@ -58,10 +58,13 @@ doEvent.caribouAlberta = function(sim, eventTime, eventType) {
       
     },
     plot = {
-
-      # sim$caribouPopGrowth <- popDynamics(stat = sim$SorensenStats)
-      # 
-      # Plot(sim$caribouPopGrowth, title = "Caribou population dynamics")
+      
+      sim$plotCaribou <- plotCaribou(sim = sim, SorensenStats = sim$SorensenStats)
+      
+ #     Plot(sim$plotCaribou$populationCaribou, title = "Caribou population size", new = TRUE)
+      Plot(sim$plotCaribou, title = "Caribou growth rate dynamics", new = TRUE)
+      
+      sim <- scheduleEvent(sim, time(sim) + P(sim)$.plotInterval, "caribouAlberta", "plot")
       
     },
 

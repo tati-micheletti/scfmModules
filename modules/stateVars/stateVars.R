@@ -29,7 +29,9 @@ defineModule(sim, list(
   outputObjects = bind_rows(
     createsOutput(objectName = "heightMap", objectClass = "RasterLayer", desc = "crude height from age model"),
     createsOutput(objectName = "disturbanceMap", objectClass = "RasterLayer", desc = "update for caribou adjacency"),
-    createsOutput(objectName = "dtMap", objectClass = "RasterLayer", desc = "timer for disturbances")
+    createsOutput(objectName = "dtMap", objectClass = "RasterLayer", desc = "timer for disturbances"),
+    createsOutput(objectName = "habitatMap", objectClass = "RasterLayer", desc = "habitat map"),
+    createsOutput(objectName = "harvestStateMap", objectClass = "RasterLayer", desc = "harvest")
   )
 ))
 
@@ -49,7 +51,10 @@ doEvent.stateVars = function(sim, eventTime, eventType) {
     sim <- scheduleEvent(sim, time(sim) + P(sim)$returnInterval, "stateVars", "update")
   },
   plot = {
-    Plot(sim$disturbanceMap, title = "Disturbance Map")
+    
+    setColors(sim$disturbanceMap,n=4) <- c("grey80", "red", "blue", "yellow")
+    Plot(sim$disturbanceMap, title = "Disturbance Map", new = TRUE)
+
     sim <- scheduleEvent(sim, time(sim) + P(sim)$.plotInterval, "stateVars", "plot")
   },
     warning(paste("Undefined event type: '", events(sim)[1, "eventType", with = FALSE],
@@ -77,8 +82,6 @@ Init <- function(sim) {
   #raster::setValues(sim$harvestStateMap, values=0) The reason CS people fucking HATE R 
   #is because of random non-orthogonality like this, and the documentation that tries to be 
   #like UNIX, but fails. We shoulda gone with Python.
-
-  setColors(sim$disturbanceMap,n=4) <- c("grey80", "red", "blue", "yellow")
   #0 = none
   #1 = burn
   #2 = cut

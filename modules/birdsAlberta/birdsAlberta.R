@@ -16,8 +16,8 @@ defineModule(sim, list(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
     defineParameter("modelTime", "numeric", 0, NA, NA, "This describes the simulation time at which the first plot event should occur"),
     defineParameter(".plotInitialTime", "numeric", 0, NA, NA, "This describes the simulation time at which the first save event should occur"),
-    defineParameter(".plotInterval", "numeric", 10 , NA, NA, "This describes the simulation time at which the first save event should occur"),
-    defineParameter(".useCache", "logical", TRUE, NA, NA, "Should this entire module be run with caching activated? This is generally intended for data-type modules, where stochasticity and time are not relevant")
+    defineParameter(".plotInterval", "numeric", 3 , NA, NA, "This describes the simulation time at which the first save event should occur"),
+    defineParameter(".useCache", "logical", FALSE, NA, NA, "Should this entire module be run with caching activated? This is generally intended for data-type modules, where stochasticity and time are not relevant")
   ),
   inputObjects = bind_rows(
     expectsInput(objectName = "covarParams", objectClass = "list", desc = "Table with model parameters", sourceURL = NA),
@@ -27,7 +27,8 @@ defineModule(sim, list(
   outputObjects = bind_rows(
     createsOutput(objectName = "birdModelVernier", objectClass = "list", desc = "Lists with table containing cell ID and abundance value per species"),
     createsOutput(objectName = "covarTable", objectClass = "list", desc = "List of covariates for all years"),
-    createsOutput(objectName = "birdAbundance", objectClass = "list", desc = "List of rasters presenting bird probability of presence")
+    createsOutput(objectName = "birdAbundance", objectClass = "list", desc = "List of rasters presenting bird probability of presence"),
+    createsOutput(objectName = "covar", objectClass = "list", desc = "Table with covariate values")
     )
 ))
 
@@ -46,13 +47,13 @@ doEvent.birdsAlberta = function(sim, eventTime, eventType) {
     
     model = {
 
-      sim$covar <- Cache(getLocalCovars, covarTable = sim$covar,
+      sim$covar <- getLocalCovars(covarTable = sim$covar,
                                   disturbanceMap = sim$disturbanceMap,
                                   ageMap = sim$ageMap,
                                   habitatMap = sim$habitatMap,
                                   vegMap = sim$vegMap) # [ IMPROVE ] use %>%
   
-      sim$covar <- Cache(getNeighborhoodCovars, covarTable = sim$covar, 
+      sim$covar <- getNeighborhoodCovars(covarTable = sim$covar, 
                                          disturbanceMap = sim$disturbanceMap,
                                          ageMap = sim$ageMap,
                                          habitatMap = sim$habitatMap,
@@ -60,7 +61,7 @@ doEvent.birdsAlberta = function(sim, eventTime, eventType) {
       
       sim$covarTable[[paste0("YEAR",time(sim))]] <- sim$covar      
       
-      sim$birdModelVernier <- Cache(birdModelVernier, covarTable = sim$covar,
+      sim$birdModelVernier <- birdModelVernier(covarTable = sim$covar,
                                                covarParams = sim$covarParams)
 
       # schedule future event(s)
@@ -72,11 +73,8 @@ doEvent.birdsAlberta = function(sim, eventTime, eventType) {
       sim$birdAbundance <- speciesRasterStack(birdModelVernier = sim$birdModelVernier,
                                               rasterTemplate = sim$vegMap)
       
-      # lapply(names(sim$covarParams), FUN = function(x){
-      #   
-      #   Plot(sim$birdAbundance[[x]], title = "Bird abundance") # STACK WITH ALL SPECIES?        
-      #   
-      # })
+        Plot(sim$birdAbundance[["MOWA"]], title = "MOWA presence probability") # STACK WITH ALL SPECIES?
+        Plot(sim$birdAbundance[["RBNU"]], title = "RBNU presence probability") # STACK WITH ALL SPECIES?
 
       # schedule future event(s)
       sim <- scheduleEvent(sim, time(sim) + P(sim)$.plotInterval, "birdsAlberta", "plot")
