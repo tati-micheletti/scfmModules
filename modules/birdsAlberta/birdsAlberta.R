@@ -26,8 +26,9 @@ defineModule(sim, list(
   ),
   outputObjects = bind_rows(
     createsOutput(objectName = "birdModelVernier", objectClass = "list", desc = "Lists with table containing cell ID and abundance value per species"),
-    createsOutput(objectName = "covarTable", objectClass = "list", desc = "List of covariates for all years")
-  )
+    createsOutput(objectName = "covarTable", objectClass = "list", desc = "List of covariates for all years"),
+    createsOutput(objectName = "birdAbundance", objectClass = "list", desc = "List of rasters presenting bird probability of presence")
+    )
 ))
 
 doEvent.birdsAlberta = function(sim, eventTime, eventType) {
@@ -71,11 +72,11 @@ doEvent.birdsAlberta = function(sim, eventTime, eventType) {
       sim$birdAbundance <- speciesRasterStack(birdModelVernier = sim$birdModelVernier,
                                               rasterTemplate = sim$vegMap)
       
-      lapply(names(sim$covarParams), FUN = function(x){
-        
-        Plot(sim$birdAbundance[[x]], title = "Bird abundance") # STACK WITH ALL SPECIES?        
-        
-      })
+      # lapply(names(sim$covarParams), FUN = function(x){
+      #   
+      #   Plot(sim$birdAbundance[[x]], title = "Bird abundance") # STACK WITH ALL SPECIES?        
+      #   
+      # })
 
       # schedule future event(s)
       sim <- scheduleEvent(sim, time(sim) + P(sim)$.plotInterval, "birdsAlberta", "plot")

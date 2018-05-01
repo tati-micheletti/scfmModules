@@ -3,18 +3,18 @@
 # 1. Rename this file based on the content you are testing using
 #    `test-functionName.R` format so that your can directly call `moduleCoverage`
 #    to calculate module coverage information.
-#    `functionName` is a function's name in your module (e.g., `caribouPopEvent1`).
-# 2. Copy this file to the tests folder (i.e., `/home/tmichele/Documents/GitHub/scfmModules/modules/caribouPop/tests/testthat`).
+#    `functionName` is a function's name in your module (e.g., `caribouAlbertaEvent1`).
+# 2. Copy this file to the tests folder (i.e., `/home/tmichele/Documents/GitHub/scfmModules/modules/caribouAlberta/tests/testthat`).
 
 # 3. Modify the test description based on the content you are testing:
 test_that("test Event1 and Event2.", {
-  module <- list("caribouPop")
+  module <- list("caribouAlberta")
   path <- list(modulePath = "/home/tmichele/Documents/GitHub/scfmModules/modules",
                outputPath = file.path(tempdir(), "outputs"))
   parameters <- list(
     #.progress = list(type = "graphical", interval = 1),
     .globals = list(verbose = FALSE),
-    caribouPop = list(.saveInitialTime = NA)
+    caribouAlberta = list(.saveInitialTime = NA)
   )
   times <- list(start = 0, end = 1)
 
@@ -55,8 +55,8 @@ test_that("test Event1 and Event2.", {
   #    Use this approach when using any function within the simList object
   #    (i.e., one version as a direct call, and one with `simList` object prepended).
 
-  if (exists("caribouPopEvent1", envir = .GlobalEnv)) {
-    simOutput <- caribouPopEvent1(mySim)
+  if (exists("caribouAlbertaEvent1", envir = .GlobalEnv)) {
+    simOutput <- caribouAlbertaEvent1(mySim)
   } else {
     simOutput <- myEvent1(mySim)
   }
@@ -66,8 +66,8 @@ test_that("test Event1 and Event2.", {
   expect_equal(simOutput$event1Test1, expectedOutputEvent1Test1) # or other expect function in testthat package.
   expect_equal(simOutput$event1Test2, as.numeric(999)) # or other expect function in testthat package.
 
-  if (exists("caribouPopEvent2", envir = .GlobalEnv)) {
-    simOutput <- caribouPopEvent2(mySim)
+  if (exists("caribouAlbertaEvent2", envir = .GlobalEnv)) {
+    simOutput <- caribouAlbertaEvent2(mySim)
   } else {
     simOutput <- myEvent2(mySim)
   }

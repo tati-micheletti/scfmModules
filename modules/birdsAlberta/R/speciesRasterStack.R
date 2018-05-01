@@ -11,7 +11,7 @@ speciesRasterStack <- function(birdModelVernier = sim$birdModelVernier,
   })
   
   names(rasterStack) <- species
-  rasterStack <- raster::stack(rasterStack)
+  # rasterStack <- raster::stack(rasterStack)
 
   return(rasterStack)
 }

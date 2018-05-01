@@ -1,0 +1,61 @@
+---
+title: "Integrated Models Results"
+author: "Tati Micheletti"
+date: "4/30/2018"
+output: html_document
+---
+
+```{r libs}
+library(SpaDES)
+results <- readRDS(file.path(getwd(), "integratedResults.rds"))
+```
+
+## Habitat
+
+```{r habitat}
+Plot(results[[1]]@.envir$ageMap, title = "Age Map")
+Plot(results[[1]]@.envir$disturbanceMap, title = "Disturbance Map")
+Plot(results[[1]]@.envir$habitatMap, title = "Habitat Map")
+```
+
+## Fire
+```{r fire}
+clearPlot()
+Plot(results[[1]]@.envir$flammableMap, title = "Flammable Map")
+Plot(results[[1]]@.envir$burnMap, title = "Fire Map")
+```
+
+## Harvest
+```{r harvest}
+clearPlot()
+Plot(results[[1]]@.envir$harvestStateMap, title = "Harvest Map")
+Plot(results[[1]]@.envir$volMap, title = "Volume Map")
+Plot(results[[1]]@.envir$strataMap, title = "Strata Map")
+results[[1]]@.envir$harvestStats
+results[[1]]@.envir$yieldTables
+```
+
+## Birds
+```{r birds}
+clearPlot()
+Plot(results[[1]]@.envir$birdAbundance$COWA, title = "COWA")
+Plot(results[[1]]@.envir$birdAbundance$MOWA, title = "MOWA")
+Plot(results[[1]]@.envir$birdAbundance$RBNU, title = "RBNU")
+Plot(results[[1]]@.envir$birdAbundance$TEWA, title = "TEWA")
+Plot(results[[1]]@.envir$birdAbundance$YWAR, title = "YWAR")
+results[[1]]@.envir$covarParams ## Covariate parameters (Vernier et al. 2008)
+results[[1]]@.envir$covarTable ## Covariates per pixel (10 years interval) 
+```
+
+## Caribou
+```{r caribou}
+clearPlot()
+Plot(results[[1]]@.envir$SorensenStats$Nt, title = "Caribou Population Size")
+```
+
+```{r caribou2}
+clearPlot()
+Plot(results[[1]]@.envir$SorensenStats$Lambda, title = "Caribou Population Growth")
+```
+
+

@@ -3,7 +3,7 @@
 # please specify the package you need to run the sim function in the test files.
 
 # to test all the test files in the tests folder:
-test_dir("/home/tmichele/Documents/GitHub/scfmModules/modules/caribouPop/tests/testthat")
+test_dir("/home/tmichele/Documents/GitHub/scfmModules/modules/caribouAlberta/tests/testthat")
 
 # Alternative, you can use test_file to test individual test file, e.g.:
-test_file("/home/tmichele/Documents/GitHub/scfmModules/modules/caribouPop/tests/testthat/test-template.R")
+test_file("/home/tmichele/Documents/GitHub/scfmModules/modules/caribouAlberta/tests/testthat/test-template.R")

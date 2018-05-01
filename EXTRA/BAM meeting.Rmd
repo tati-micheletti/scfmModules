@@ -1,0 +1,22 @@
+---
+title: "BAM Meeting"
+author: "Tati Micheletti"
+date: "4/30/2018"
+output: html_document
+---
+
+## Speed Talks
+
+### Peter
+
+Peter's Talk
+- Where is data coming from (habitat representation)
+- Extending GLMs is not a good idea; BRTs might be more stable for extrapolating
+Q: What about hierarchical models?
+
+Diana
+- For some areas, national estimates might not work so well
+- Summarized outputs
+
+Peter
+- ARU 

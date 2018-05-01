@@ -1,0 +1,16 @@
+---
+title: "IMPROVE"
+author: "Tati Micheletti"
+date: "4/30/2018"
+output: html_document
+---
+
+### ADDED THE TAG: [ IMPROVE ] on lines that can be improved later on to be more modular and aviod errors
+
+[ IMPROVE ] Change colors from MAPS: Habitat Classification, Vegetation Map (not needed. Not plotting!) and Strata for Harvesting? [ Steve ]
+[ IMPROVE ] Let people chose the district they want from global. Create a function to bring up the table for that [ lSteve ]
+
+NOTES:
+
+Bird models are taking approximately 30 minutes per year
+The rest is taking approximately 5 min per year

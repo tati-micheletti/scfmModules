@@ -1,5 +1,4 @@
 Stratify <- function(sim) {
-  
 
 convertTable <- data.frame(read.csv(file.path(dataPath(sim),"ConvertTable.csv")))
 

@@ -1,0 +1,74 @@
+---
+title: "BAM Meeting"
+author: "Tati Micheletti"
+date: "4/30/2018"
+output: html_document
+---
+
+## Speed Talks
+
+## Bird Ecology
+
+Peter's Talk
+- Where is data coming from (habitat representation)
+- Extending GLMs is not a good idea; BRTs might be more stable for extrapolating
+Q: What about hierarchical models?
+
+Diana
+- For some areas, national estimates might not work so well
+- Summarized outputs
+
+Peter
+- ARU 
+
+## Population drivers and trends theme
+Diana
+- 
+
+Lionel
+- Preys on breeding ground (Spruce Worms) and the relation of these to bird abundance
+
+Erin
+- Points for counts: how can the non-long term ones can be useful?
+
+Judith
+- Why to use trends? Safe net: observe nets based on projects to define mitigation/changes in methods
+
+Steve
+- Dealing with sampling gaps on underrepresented places
+
+Peter
+- Residual method approach for estimating trends based on point counts (abundance) x models outputs
+- Instead of basing trend on density, base it on K, as you will have different quality habitats affected different ways
+
+Diana
+- Breeding ground forest change was the most important
+- Isotopes for migratory connectivity
+
+Diana
+- precipitation is one of the most important climate change variables on bird changes?
+
+## Habitat
+Peter
+- How do we define good habitats? Higher population density or where we have most of the birds
+
+Andy
+- Testing for patterns of apparent diferential habitat selection: hierarchical ANCOVA models / niche overlap analysis
+
+Junior
+- Species really vary their presence/abundance on different regions with similar habitats
+- Other variables might be important, not only trees
+
+Chico
+- Geographically weighted GLMs
+- Conceptual model
+- Moose cree - OSFL, CAWA, CONI, RUBL: not enough data, created buffer aroud area, fitted models and saw how predicted estimates differ among these
+--> Algorithm to merge similar habitats (talk to Francisco and Peter) 
+
+Nicole
+- Constructing models for BC - validating the tools that forest companies have been using for guiding their activities
+- Discussion: integration BAM / forest companies
+
+Tara
+- Northwest as potential refugia for olive flycatcher and another bird
+

@@ -13,86 +13,78 @@ devtools::install_github("PredictiveEcology/SpaDES.core", ref = "development") #
 devtools::install_github("PredictiveEcology/SpaDES.tools", ref = "development") # Make sure you have the latest version of SpaDES.tools: 0.1.1.9010
 devtools::install_github("PredictiveEcology/reproducible", ref = "development") # Make sure you have the latest version of reproducible: 0.1.4.9016
 
-library(SpaDES)
-library(magrittr)
-library(raster)
-
-# set the directories
-workDirectory <- getwd()
-
-paths <- list(
-  cachePath = file.path(workDirectory, "cache"),
-  modulePath = file.path(workDirectory, "modules"),
-  inputPath = file.path(workDirectory, "inputs"),
-  outputPath = file.path(workDirectory, "outputs")
-)
-
-setPaths(modulePath = paths$modulePath, inputPath = paths$inputPath, outputPath = paths$outputPath, cachePath = paths$cachePath)
-
-## list the modules to use
-times <- list(start = 0, end = 50)
-parameters <- list(
-  Hanzlik = list(replanInterval = 10,
-                 rationPeriodMultiplier = 2),
-  stateVars = list(persistTimes=c(20,10,10)),
-  scfmCrop = list(.useCache = TRUE
-                 ),
- scfmlandscapeAttr = list(.useCache = TRUE
-                 ),
- scfmLandcoverInit = list(.useCache = TRUE,
-                           nonFlammClasses = c(38) #36, 37, 38, 39)
-                     ),
- ageModule  = list(initialAge=25, 
-                   .plotInitialTime=0
+# Load libraries  
+  library(SpaDES)
+  library(magrittr)
+  library(raster)
+  
+# Set the directories
+  workDirectory <- getwd()
+  
+  paths <- list(
+    cachePath = file.path(workDirectory, "cache"),
+    modulePath = file.path(workDirectory, "modules"),
+    inputPath = file.path(workDirectory, "inputs"),
+    outputPath = file.path(workDirectory, "outputs")
+  )
+  
+  setPaths(modulePath = paths$modulePath, inputPath = paths$inputPath, outputPath = paths$outputPath, cachePath = paths$cachePath)
+  
+# List the parameters to use
+  times <- list(start = 0, end = 50)
+  parameters <- list(
+    Hanzlik = list(replanInterval = 10,
+                   rationPeriodMultiplier = 2),
+    stateVars = list(persistTimes=c(20,10,10)),
+    scfmCrop = list(.useCache = TRUE
                    ),
- scfmSpread = list(.plotInitialTime=0,
-                   pOverRide=0.28
-                    )
-)
-
-#modules <- list("prepInTest") # TEST PREP INPUTS
-
-modules <- list("scfmCrop", "scfmLandcoverInit", "scfmRegime", "scfmDisturbanceDriver", "scfmIgnition", "scfmEscape", "scfmSpread", 
-  "ageModule", "mapBurns", "loadYieldTables", "Hanzlik", "strataMapFromVegMap", "scfmHarvest", "stateVars","birdsAlberta","caribouPop")
+   scfmlandscapeAttr = list(.useCache = TRUE
+                   ),
+   scfmLandcoverInit = list(.useCache = TRUE,
+                             nonFlammClasses = c(38) #36, 37, 38, 39)
+                       ),
+   ageModule  = list(initialAge=25, 
+                     .plotInitialTime=0
+                     ),
+   scfmSpread = list(.plotInitialTime=0,
+                     pOverRide=0.28
+                      )
+  )
+  
+# List the modules to use
+modules <- list("scfmCrop", "scfmLandcoverInit", # Downloading and cropping rasters 
+                "scfmRegime", "scfmDisturbanceDriver", "scfmIgnition", "scfmEscape", "scfmSpread", # Fire module 
+                "ageModule", # Tree aging 
+                "mapBurns", # What burns (considers age)?
+                "loadYieldTables", "Hanzlik", "strataMapFromVegMap", "scfmHarvest", # Harvesting 
+                "stateVars", # Updating maps
+                "birdsAlberta", # Bird module
+                "caribouAlberta") # Caribou population module
+   
+  objects <- list(
+                  scfmPars=list(pSpread=0.225,
+                    p0=0.115,
+                    naiveP0=0.15, 
+                    pIgnition=0.00004, #0.0000112,
+                    maxBurnCells=NA
+                    ),
+                  numTypes = 8,
+                  landscapeAttr = list(cellSize=6.25),
+                  nNbrs = 8,
+                  url.vegMap = "ftp://ftp.ccrs.nrcan.gc.ca/ad/NLCCLandCover/LandcoverCanada2005_250m/LandCoverOfCanada2005_V1_4.zip",
+                  url.studyArea = "http://sis.agr.gc.ca/cansis/nsdb/ecostrat/district/ecodistrict_shp.zip",
+                  areaInHa = pi
+              )
  
-objects <- list(
-                scfmPars=list(pSpread=0.225,
-                  p0=0.115,
-                  naiveP0=0.15, 
-                  pIgnition=0.00004, #0.0000112,
-                  maxBurnCells=NA
-                  ),
-                numTypes = 8,
-                landscapeAttr = list(cellSize=6.25),
-                nNbrs = 8,
-                url.vegMap = "ftp://ftp.ccrs.nrcan.gc.ca/ad/NLCCLandCover/LandcoverCanada2005_250m/LandCoverOfCanada2005_V1_4.zip",
-                url.studyArea = "http://sis.agr.gc.ca/cansis/nsdb/ecostrat/district/ecodistrict_shp.zip",
-                areaInHa = pi
-            )
-
-# dev.useRSGD(TRUE)
-# dev()
-# clearPlot()
-
+  # SIMULATION INITIALIZATION
 mySim <- simInit(times = times, params = parameters, modules = modules, objects = objects, paths = paths, loadOrder = unlist(modules))
-system.time(mySimOut <- spades(mySim, debug = TRUE))
+  
+  # SIMULATION
+mySimOut <- spades(mySim, debug = TRUE)
 
-# Yield curve example
-plot(mySimOut$yieldTables$AB$AwSw, xlab="Stand Age", ylab="Volume (m^3/ha)")
 
-Plot(apply(mySimOut$harvestStats,1,sum))
-Plot(mySimOut$strataMap)
-Plot(mySimOut$volMap)
-Plot(mySimOut$harvestStateMap)
-Plot(mySimOut$disturbanceMap)
-Plot(mySimOut$ageMap)
+# How to build a module?
+newModule(name = "Carbon", path = modulePath(mySim))
 
 ```
-
-### ADDED THE TAG: [ IMPROVE ] on lines that can be improved later on to be more modular and aviod errors
- When ageMap is better: substitute `sim$flammableMap <- sim$vegMap` to `sim$ageMap` (think I have done it already. Doesn't matter as it is just the template anyway)
-
-[ IMPROVE ] Change colors from MAPS: Habitat Classification, Vegetation Map (not needed. Not plotting!) and Strata for Harvesting? [ Steve ]
-[ IMPROVE ] Let people chose the district they want from Global. Create a function to bring up the table for that [ lSteve ]
-
 
