@@ -60,7 +60,7 @@ Init <- function(sim) {
   tmp <- as.data.frame(sim$firePoints)
   #extract and validate fireCause spec
   fc <- P(sim)$fireCause
-  if (any(!(fc %in% base::levels(tmp$CAUSE))))
+  if (any(!(fc %in% tmp$CAUSE)))
       stop("illegal fireCause: ", fc)
   tmp <- subset(tmp, CAUSE %in% fc)
   #extract and validate fireEpoch
@@ -113,10 +113,9 @@ Init <- function(sim) {
   if (!suppliedElsewhere("studyArea", sim)) # ADDED TATI
     stop("No studyArea provided")
   
-  if (!("firePointsDB" %in% sim$.userSuppliedObjNames)){
-     dsnPath <- file.path(dataPath(sim),"NFDB_point")
-     dsnPath <- normalizePath(dsnPath)
-     sim$firePointsDB <- Cache(readOGR, dsn=dsnPath, layer="NFDB_point_20171106", cacheRepo=cachePath(sim))
+  if (!suppliedElsewhere("firePointsDB", sim)) {# ADDED TATI, modified by Eliot July 23, 2018 
+    sim$firePointsDB <- prepInputs(url = "http://cwfis.cfs.nrcan.gc.ca/downloads/nfdb/fire_pnt/current_version/NFDB_point.zip", 
+                                   destinationPath = dataPath(sim)) 
   }
   
   return(invisible(sim))
