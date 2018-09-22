@@ -38,6 +38,7 @@ defineModule(sim, list(
     
   ),
   outputObjects=bind_rows(
+    createsOutput(objectName = "vegMap", objectClass = "RasterLayer", desc = "vegetation map")
   )
 ))
 
