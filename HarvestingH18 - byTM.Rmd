@@ -53,9 +53,16 @@ modules <- list("scfmCrop", "scfmLandcoverInit", # Downloading and cropping rast
                 "stateVars", # Updating maps
                 "birdsAlberta", # Bird module
                 "caribouAlberta") # Caribou population module
-   
-  objects <- list(
-                  scfmPars = list(pSpread=0.225,
+
+modulesFire <- list("scfmCrop", "scfmLandcoverInit", # Downloading and cropping rasters 
+                "scfmRegime", "scfmDisturbanceDriver", "scfmIgnition", "scfmEscape", "scfmSpread", # Fire module 
+                "ageModule", # Tree aging 
+                "mapBurns") # What burns (considers age)?
+
+modulesHarvest <- list("scfmCrop", "scfmLandcoverInit", 
+                       "loadYieldTables", "Hanzlik", "strataMapFromVegMap", "scfmHarvest", "stateVars") # 
+
+objects <- list(scfmPars = list(pSpread=0.225,
                     p0 = 0.115,
                     naiveP0 = 0.15, 
                     pIgnition = 0.04, #0.00004, #0.0000112,
@@ -71,11 +78,14 @@ modules <- list("scfmCrop", "scfmLandcoverInit", # Downloading and cropping rast
               )
  
   # SIMULATION INITIALIZATION
-mySim <- simInit(times = times, params = parameters, modules = modules, objects = objects, paths = paths, loadOrder = unlist(modules))  
+mySim <- simInit(times = times, params = parameters, modules = modulesFire, objects = objects, paths = paths, loadOrder = unlist(modules))  
 
+mySim <- simInit(times = times, params = parameters, modules = modulesHarvest, objects = objects, paths = paths, loadOrder = unlist(modules))  
+
+mySim <- simInit(times = times, params = parameters, modules = modulesBirds, objects = objects, paths = paths, loadOrder = unlist(modules))  
 
   # SIMULATION
-system.time(mySimOut <- Cache(spades, mySim, debug = TRUE))
+mySimOut <- Cache(spades, mySim, debug = TRUE)
 
 
 # How to build a module?
