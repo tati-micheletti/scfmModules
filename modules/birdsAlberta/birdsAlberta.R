@@ -21,6 +21,7 @@ defineModule(sim, list(
   ),
   inputObjects = bind_rows(
     expectsInput(objectName = "covarParams", objectClass = "list", desc = "Table with model parameters", sourceURL = NA),
+    expectsInput(objectName = "vegMap", objectClass = "RasterLayer", desc = "vegetation map", sourceURL = sim$url.vegMap),
     expectsInput(objectName = "covar", objectClass = "data.table", desc = "Table with covariate values", sourceURL = NA)
     
   ),
