@@ -9,7 +9,7 @@ defineModule(sim, list(
   keywords = NA, # c("insert key words here"),
   authors = person("First", "Last", email = "first.last@example.com", role = c("aut", "cre")),
   childModules = c("scfmCrop", "scfmLandcoverInit", "scfmRegime", "scfmDisturbanceDriver", "scfmIgnition", "scfmEscape", "scfmSpread", "ageModule", "mapBurns", "loadYieldTables", "Hanzlik", "strataMapFromVegMap", "scfmHarvest", "stateVars", "birdsAlberta", "caribouAlberta"),
-  version = list(SpaDES.core = "0.2.2.9006"),# integratedSask = "0.0.1", scfmCrop = "0.0.1", scfmLandcoverInit = "0.0.1", scfmRegime = "0.0.1", scfmDisturbanceDriver = "0.0.1", scfmIgnition = "0.0.1", scfmEscape = "0.0.1", scfmSpread = "0.0.1", ageModule = "0.0.1", mapBurns = "0.0.1", loadYieldTables = "0.0.1", Hanzlik = "0.0.1", strataMapFromVegMap = "0.0.1", scfmHarvest = "0.0.1", stateVars = "0.0.1", birdsAlberta = "0.0.1", caribouAlberta = "0.0.1"),
+  version = list(SpaDES.core = "0.2.2.9006", integratedSask = "0.0.2"),# scfmCrop = "0.0.1", scfmLandcoverInit = "0.0.1", scfmRegime = "0.0.1", scfmDisturbanceDriver = "0.0.1", scfmIgnition = "0.0.1", scfmEscape = "0.0.1", scfmSpread = "0.0.1", ageModule = "0.0.1", mapBurns = "0.0.1", loadYieldTables = "0.0.1", Hanzlik = "0.0.1", strataMapFromVegMap = "0.0.1", scfmHarvest = "0.0.1", stateVars = "0.0.1", birdsAlberta = "0.0.1", caribouAlberta = "0.0.1"),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year",
   citation = list("citation.bib"),
