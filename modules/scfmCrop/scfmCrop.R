@@ -16,7 +16,7 @@ defineModule(sim, list(
   timeframe=as.POSIXlt(c(NA, NA)),
   timeunit="year",
   citation=list(),
-  reqdPkgs=list("raster","rgeos","sp"),
+  reqdPkgs=list("raster","rgeos","sp", "SpaDES.tools"),
   documentation = list("README.txt", "scfmCrop.Rmd"),
   parameters=rbind(
     defineParameter(".useCache", "logical", FALSE, NA, NA, desc="Use cache or not.")
@@ -120,7 +120,7 @@ Init <- function(sim) {
     c35 <- which(sim$ageMap[]==35)
     
     set.seed(2016)
-   gausMapBase <- gaussMap(sim$ageMap, scale = 8, var = 120, method = "RMexp")
+    gausMapBase <- gaussMap(sim$ageMap, scale = 8, var = 120, method = "RMexp")
    
     sim$ageMap <- Cache(raster::mask, gausMapBase, sim$studyArea)
     sim$ageMap[c15] <- 15
