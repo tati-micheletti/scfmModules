@@ -6,7 +6,7 @@ defineModule(sim, list(
   keywords = c("insert key words here"),
   authors = c(person(c("Steve"), "Cumming", email="stevec@sbf.laval.ca", role=c("aut", "cre"))),
   childModules = character(),
-  version = numeric_version("1.1.1.9001"),
+  version = numeric_version("1.1.1.9002"),
   spatialExtent = raster::extent(rep(NA_real_, 4)),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year", # e.g., "year",
