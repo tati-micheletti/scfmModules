@@ -22,7 +22,10 @@ defineModule(sim, list(
   inputObjects = bind_rows(
     expectsInput(objectName="scfmRegimePars", objectClass="list", desc="canonical regime description"),
     expectsInput(objectName="landscapeAttr", objectClass="list", desc="details of the current landscape structure"),
-    expectsInput(objectName="cTable2", objectClass="data.frame", desc="lame-ass calibration data")
+    expectsInput(objectName="cTable2", objectClass="data.frame", desc="lame-ass calibration data"),
+    expectsInput(objectName="fn", objectClass="data.frame", desc = "calibration data path Gdrive",
+                 sourceURL = "https://drive.google.com/open?id=1m8hyrhojCmYfHws942wwsWoSSMiAzHWu")
+
   ),
   outputObjects = bind_rows(
     createsOutput(objectName = "scfmPars", objectClass = "list", desc = "parameters for threeStageFireModel")
@@ -35,7 +38,7 @@ defineModule(sim, list(
 doEvent.scfmDisturbanceDriver = function(sim, eventTime, eventType) {
   switch(
     eventType,
-    
+
     init = {
 
       sim <- Init(sim)
@@ -53,14 +56,14 @@ Init <- function(sim){
   #   fn <- file.path(dataPath(sim), "FiresN1000MinFiresSize2NoLakes.csv")
   #   sim$cTable2 <- read.csv(fn)
   # } #shouldnt be necessary
-  
+
   y <- sim$cTable2$y
   x <- sim$cTable2$p
 
   m.lw <- stats::lowess(y~x,iter=2)
   if (any(diff(m.lw$y)<0))
     warning("scfmDriver: lowess curve non-monotone. Proceed with caution")
-  targetSize <- sim$scfmRegimePars$xBar/sim$landscapeAttr$cellSize - 1 
+  targetSize <- sim$scfmRegimePars$xBar/sim$landscapeAttr$cellSize - 1
   pJmp <- approx(m.lw$y,m.lw$x,targetSize,rule=2)$y
   w<-sim$landscapeAttr$nNbrs
   w<-w/sum(w)
@@ -69,7 +72,7 @@ Init <- function(sim){
   #This won't actually work unless sim$nNbrs is 8
   minP0 <- hatP0(hatPE,sim$nNbrs)
   maxP0 <- hatP0(hatPE,floor(sum(w*0:8)))
-  if (minP0 < maxP0){ 
+  if (minP0 < maxP0){
     foo<-stats::optimise(escapeProbDelta,
                          interval=c(minP0, maxP0),
                          tol=1e-6,
@@ -79,12 +82,12 @@ Init <- function(sim){
   }
   else
     adjP0 <- minP0
-  
-  #it is almost obvious that the true minimum must occur within the interval specified in the 
-  #call to optimise, but I have not proved it, nor am I certain that the function being minimised is 
+
+  #it is almost obvious that the true minimum must occur within the interval specified in the
+  #call to optimise, but I have not proved it, nor am I certain that the function being minimised is
   #monotone.
-  
-  rate <- sim$scfmRegimePars$ignitionRate * sim$landscapeAttr$cellSize * P(sim)$returnInterval 
+
+  rate <- sim$scfmRegimePars$ignitionRate * sim$landscapeAttr$cellSize * P(sim)$returnInterval
   pIgnition <- rate #approximate Poisson arrivals as a Bernoulli process at cell level.
   #for Poisson rate << 1, the expected values are the same, partially accounting
   #for multiple arrivals within years. Formerly, I used a poorer approximation
@@ -95,15 +98,15 @@ Init <- function(sim){
     stop("illegal estimate of igntition probability")
   if (pIgnition > 0.01)
     warning("Poisson variance approximation will be poor")
-  
+
   sim$scfmPars<-list(pSpread=pJmp,
                      p0=adjP0,
-                     naiveP0=minP0, 
+                     naiveP0=minP0,
                      pIgnition=pIgnition,
                      maxBurnCells=as.integer(round(sim$scfmRegimePars$emfs/sim$landscapeAttr$cellSize)))
 
   return(invisible(sim))
-  
+
   }
 
 
@@ -113,7 +116,7 @@ Init <- function(sim){
     fn <- file.path(dataPath(sim), "FiresN1000MinFiresSize2NoLakes.csv")
     sim$cTable2 <- read.csv(fn)
   }
-  
+
   return(invisible(sim))
 }
 
