@@ -5,7 +5,7 @@ defineModule(sim, list(
   keywords = "fire",
   authors=c(person(c("Steve", "G"), "Cumming", email="stevec@sbf.ulaval.ca", role=c("aut", "cre"))),
   childModules = character(0),
-  version = list(SpaDES.core = "0.1.1.9011", scfmDisturbanceDriver = "0.1.0"),
+  version = list(SpaDES.core = "0.1.1.9011", scfmDisturbanceDriver = "0.1.1"),
   spatialExtent = raster::extent(rep(NA_real_, 4)),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year",
